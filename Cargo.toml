@@ -1,0 +1,24 @@
+[package]
+name = "bevy_book_game"
+version = "0.1.0"
+edition = "2021"
+authors = ["adrocodes adrocodes@users.noreply.github.com"]
+description = "A collection of random plugins and small games to learn and test out Bevy related features"
+readme = "README.md"
+repository = "https://github.com/adrocodes/bevy_kitchen_sink"
+keywords = ["bevy", "gamedev"]
+categories = ["games", "game-development"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = { version = "0.9.1", features = ["dynamic"] }
+bevy_mouse_position = { git = "https://github.com/adrocodes/bevy_mouse_position" }
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
