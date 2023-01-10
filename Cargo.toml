@@ -13,7 +13,7 @@ categories = ["games", "game-development"]
 
 [dependencies]
 bevy = { version = "0.9.1", features = ["dynamic"] }
-bevy_mouse_position = { git = "https://github.com/adrocodes/bevy_mouse_position" }
+bevy_mouse_position = { git = "https://github.com/adrocodes/bevy_mouse_position", branch = "main" }
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
