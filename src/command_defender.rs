@@ -2,6 +2,9 @@ use bevy::prelude::*;
 
 pub struct CommandDefenderPlugin;
 
+#[derive(Component)]
+struct InputField;
+
 #[derive(Resource)]
 struct CommandInput(String);
 
@@ -25,29 +28,32 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         style: TextStyle {
             font: asset_server.load("fonts/FiraSans-Bold.ttf"),
             font_size: 24.,
-            color: Color::BLACK,
+            color: Color::WHITE,
         },
     };
 
     commands
         .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Px(40.)),
+                size: Size::new(Val::Percent(100.0), Val::Px(50.)),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..default()
             },
-            background_color: Color::rgba(0., 0., 0., 0.2).into(),
+            background_color: Color::rgba(1., 1., 1., 0.025).into(),
             ..default()
         })
         .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text {
-                    sections: vec![text_field],
+            parent.spawn((
+                TextBundle {
+                    text: Text {
+                        sections: vec![text_field],
+                        ..default()
+                    },
                     ..default()
                 },
-                ..default()
-            });
+                InputField,
+            ));
         });
 }
 
@@ -71,8 +77,18 @@ fn text_input(
     }
 }
 
-fn render_text_input(command_input: Res<CommandInput>, mut query: Query<&mut Text>) {
-    for mut text in query.iter_mut() {
-        text.sections[0].value = command_input.0.to_string().to_uppercase();
+fn render_text_input(
+    command_input: Res<CommandInput>,
+    mut query: Query<&mut Text, With<InputField>>,
+) {
+    let mut text = query.single_mut();
+    let copy = command_input.0.to_string().to_uppercase();
+
+    if copy.is_empty() {
+        text.sections[0].value = "A1:A2".to_string();
+        text.sections[0].style.color = Color::GRAY;
+    } else {
+        text.sections[0].value = copy;
+        text.sections[0].style.color = Color::WHITE;
     }
 }
