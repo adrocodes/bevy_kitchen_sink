@@ -11,3 +11,11 @@ Tracks user input and stores it in a `CommandInput` resource. It will only accep
 ## Select Area
 
 Allows the user to click and drag a rectangle to select entities in that region.
+
+## Pancam
+
+A copy of this plugin - https://github.com/johanhelsing/bevy_pancam. Used to learn how it works and make my own changes for customisation.
+
+## Solar System
+
+A really basic Solar System simulation.
