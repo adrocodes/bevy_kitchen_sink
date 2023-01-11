@@ -126,41 +126,41 @@ fn spawn_planets(
         Planet { speed: 3.0 },
     ));
 
-    // // Saturn
-    // commands.spawn((
-    //     Name("Saturn".to_string()),
-    //     MaterialMesh2dBundle {
-    //         mesh: meshes.add(shape::Circle::new(30.).into()).into(),
-    //         material: materials.add(ColorMaterial::from(Color::BISQUE)),
-    //         transform: Transform::from_translation(Vec3::new(-420.0, 0.0, 0.0)),
-    //         ..default()
-    //     },
-    //     Planet { speed: 3.5 },
-    // ));
+    // Saturn
+    commands.spawn((
+        Name("Saturn".to_string()),
+        MaterialMesh2dBundle {
+            mesh: meshes.add(shape::Circle::new(saturn_radii).into()).into(),
+            material: materials.add(ColorMaterial::from(Color::BEIGE)),
+            transform: Transform::from_xyz(saturn_au, 0.0, 0.0),
+            ..default()
+        },
+        Planet { speed: 3.0 },
+    ));
 
-    // // Uranus
-    // commands.spawn((
-    //     Name("Uranus".to_string()),
-    //     MaterialMesh2dBundle {
-    //         mesh: meshes.add(shape::Circle::new(28.).into()).into(),
-    //         material: materials.add(ColorMaterial::from(Color::BLUE)),
-    //         transform: Transform::from_translation(Vec3::new(-500.0, 0.0, 0.0)),
-    //         ..default()
-    //     },
-    //     Planet { speed: 4.0 },
-    // ));
+    // Uranus
+    commands.spawn((
+        Name("Uranus".to_string()),
+        MaterialMesh2dBundle {
+            mesh: meshes.add(shape::Circle::new(uranus_radii).into()).into(),
+            material: materials.add(ColorMaterial::from(Color::BEIGE)),
+            transform: Transform::from_xyz(uranus_au, 0.0, 0.0),
+            ..default()
+        },
+        Planet { speed: 3.0 },
+    ));
 
-    // // Neptune
-    // commands.spawn((
-    //     Name("Neptune".to_string()),
-    //     MaterialMesh2dBundle {
-    //         mesh: meshes.add(shape::Circle::new(25.).into()).into(),
-    //         material: materials.add(ColorMaterial::from(Color::MIDNIGHT_BLUE)),
-    //         transform: Transform::from_translation(Vec3::new(-580.0, 0.0, 0.0)),
-    //         ..default()
-    //     },
-    //     Planet { speed: 4.5 },
-    // ));
+    // Neptune
+    commands.spawn((
+        Name("Neptune".to_string()),
+        MaterialMesh2dBundle {
+            mesh: meshes.add(shape::Circle::new(neptune_radii).into()).into(),
+            material: materials.add(ColorMaterial::from(Color::BEIGE)),
+            transform: Transform::from_xyz(neptune_au, 0.0, 0.0),
+            ..default()
+        },
+        Planet { speed: 3.0 },
+    ));
 }
 
 // FIXME: Works but lags like a motherfucker
