@@ -1,4 +1,4 @@
-use bevy::{prelude::*, winit::WinitSettings};
+use bevy::prelude::*;
 use bevy_mouse_position::MousePositionPlugin;
 
 use pancam::{PanCam, PanCamPlugin};
@@ -41,7 +41,6 @@ fn main() {
         .add_plugin(MousePositionPlugin)
         // .add_plugin(CommandDefenderPlugin)
         .add_plugin(SelectAreaPlugin)
-        .insert_resource(WinitSettings::desktop_app())
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(spawn_camera)
         .add_plugin(SolarSystemPlugin)
