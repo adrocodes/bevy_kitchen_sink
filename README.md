@@ -2,6 +2,8 @@
 
 A collection of random plugins and small games to learn and test out Bevy related features.
 
+> Warning: the code in here will most likely be quite rough as it is a playing ground, be warned if you want to copy & paste any of the code :D
+
 If I build something interesting, I'd extract it into a separate repo that you'll be able to use in your projects. Check out the `Cargo.toml` for those types of packages.
 
 ## Command Defender
