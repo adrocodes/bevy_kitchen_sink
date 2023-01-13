@@ -1,5 +1,7 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
+use crate::select_area::Selectable;
+
 pub struct SolarSystemPlugin;
 
 #[derive(Component)]
@@ -99,6 +101,7 @@ fn spawn_planets(
         Planet {
             speed: mercury_speed,
         },
+        Selectable,
     ));
 
     // Venus
@@ -111,6 +114,7 @@ fn spawn_planets(
             ..default()
         },
         Planet { speed: venus_speed },
+        Selectable,
     ));
 
     // Earth
@@ -123,6 +127,7 @@ fn spawn_planets(
             ..default()
         },
         Planet { speed: earth_speed },
+        Selectable,
     ));
 
     // Mars
@@ -135,6 +140,7 @@ fn spawn_planets(
             ..default()
         },
         Planet { speed: mars_speed },
+        Selectable,
     ));
 
     // Jupiter
@@ -149,6 +155,7 @@ fn spawn_planets(
         Planet {
             speed: jupiter_speed,
         },
+        Selectable,
     ));
 
     // Saturn
@@ -163,6 +170,7 @@ fn spawn_planets(
         Planet {
             speed: saturn_speed,
         },
+        Selectable,
     ));
 
     // Uranus
@@ -177,6 +185,7 @@ fn spawn_planets(
         Planet {
             speed: uranus_speed,
         },
+        Selectable,
     ));
 
     // Neptune
@@ -191,6 +200,7 @@ fn spawn_planets(
         Planet {
             speed: neptune_speed,
         },
+        Selectable,
     ));
 }
 
