@@ -29,7 +29,7 @@ impl Plugin for SolarSystemPlugin {
             .add_startup_system(spawn_sun)
             .add_startup_system(spawn_planets)
             .add_system(rotate_planets_around_sun)
-            .add_system(button_system)
+            .add_system(increment_timescale)
             .add_system(time_scale_ui);
     }
 }
@@ -214,18 +214,18 @@ const NORMAL_BUTTON: Color = Color::rgb(0.15, 0.15, 0.15);
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
-fn button_system(
+fn increment_timescale(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, &TimeScaleIncrement),
         (Changed<Interaction>, With<Button>),
     >,
     mut time_scale: ResMut<TimeScale>,
 ) {
-    for (interaction, mut color, increament) in &mut interaction_query {
+    for (interaction, mut color, increment) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 *color = PRESSED_BUTTON.into();
-                time_scale.0 += increament.0;
+                time_scale.0 += increment.0;
                 time_scale.0 = time_scale.0.clamp(0.0, 50.0);
             }
             Interaction::Hovered => {
