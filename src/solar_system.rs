@@ -19,6 +19,9 @@ struct TimeScale(f32);
 #[derive(Component)]
 struct TimeScaleUi;
 
+#[derive(Component)]
+struct TimeScaleIncrement(f32);
+
 impl Plugin for SolarSystemPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TimeScale(1.0))
@@ -40,7 +43,7 @@ fn spawn_sun(
         Sun,
         Name("Sun".to_string()),
         MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(5.).into()).into(),
+            mesh: meshes.add(shape::Circle::new(20.).into()).into(),
             material: materials.add(ColorMaterial::from(Color::YELLOW)),
             ..default()
         },
@@ -53,7 +56,7 @@ fn spawn_planets(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let earth_radii: f32 = 20.0;
-    let au: f32 = -250.0;
+    let au: f32 = -260.0;
     let earth_speed: f32 = f32::to_radians(10.);
 
     let mercury_radii: f32 = earth_radii * 0.38;
@@ -89,7 +92,7 @@ fn spawn_planets(
         Name("Mercury".to_string()),
         MaterialMesh2dBundle {
             mesh: meshes.add(shape::Circle::new(mercury_radii).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::BEIGE)),
+            material: materials.add(ColorMaterial::from(Color::GRAY)),
             transform: Transform::from_xyz(mercury_au, 0.0, 0.0),
             ..default()
         },
@@ -103,7 +106,7 @@ fn spawn_planets(
         Name("Venus".to_string()),
         MaterialMesh2dBundle {
             mesh: meshes.add(shape::Circle::new(venus_radii).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::PINK)),
+            material: materials.add(ColorMaterial::from(Color::rgb_u8(178, 146, 95))),
             transform: Transform::from_xyz(venus_au, 0.0, 0.0),
             ..default()
         },
@@ -139,7 +142,7 @@ fn spawn_planets(
         Name("Jupiter".to_string()),
         MaterialMesh2dBundle {
             mesh: meshes.add(shape::Circle::new(jupiter_radii).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::BEIGE)),
+            material: materials.add(ColorMaterial::from(Color::ORANGE_RED)),
             transform: Transform::from_xyz(jupiter_au, 0.0, 0.0),
             ..default()
         },
@@ -167,7 +170,7 @@ fn spawn_planets(
         Name("Uranus".to_string()),
         MaterialMesh2dBundle {
             mesh: meshes.add(shape::Circle::new(uranus_radii).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::BEIGE)),
+            material: materials.add(ColorMaterial::from(Color::SEA_GREEN)),
             transform: Transform::from_xyz(uranus_au, 0.0, 0.0),
             ..default()
         },
@@ -181,7 +184,7 @@ fn spawn_planets(
         Name("Neptune".to_string()),
         MaterialMesh2dBundle {
             mesh: meshes.add(shape::Circle::new(neptune_radii).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::BEIGE)),
+            material: materials.add(ColorMaterial::from(Color::BLUE)),
             transform: Transform::from_xyz(neptune_au, 0.0, 0.0),
             ..default()
         },
@@ -213,17 +216,17 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 
 fn button_system(
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor),
+        (&Interaction, &mut BackgroundColor, &TimeScaleIncrement),
         (Changed<Interaction>, With<Button>),
     >,
     mut time_scale: ResMut<TimeScale>,
 ) {
-    for (interaction, mut color) in &mut interaction_query {
+    for (interaction, mut color, increament) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 *color = PRESSED_BUTTON.into();
-                // TODO: Implement decrease
-                time_scale.0 += 1.;
+                time_scale.0 += increament.0;
+                time_scale.0 = time_scale.0.clamp(0.0, 50.0);
             }
             Interaction::Hovered => {
                 *color = HOVERED_BUTTON.into();
@@ -259,16 +262,41 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, time_scale: 
         })
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
+                .spawn(NodeBundle {
                     style: Style {
-                        size: Size::new(Val::Px(50.0), Val::Px(50.0)),
-                        justify_content: JustifyContent::Center,
+                        size: Size::new(Val::Auto, Val::Px(50.)),
+                        margin: UiRect::right(Val::Px(16.0)),
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    background_color: NORMAL_BUTTON.into(),
                     ..default()
                 })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Timescale:".to_string(),
+                        TextStyle {
+                            font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                            font_size: 16.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                        },
+                    ));
+                });
+        })
+        .with_children(|parent| {
+            parent
+                .spawn((
+                    ButtonBundle {
+                        style: Style {
+                            size: Size::new(Val::Px(50.0), Val::Px(50.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        background_color: NORMAL_BUTTON.into(),
+                        ..default()
+                    },
+                    TimeScaleIncrement(-1.0),
+                ))
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
                         "-",
@@ -308,16 +336,19 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, time_scale: 
         })
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
-                        size: Size::new(Val::Px(50.0), Val::Px(50.0)),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
+                .spawn((
+                    ButtonBundle {
+                        style: Style {
+                            size: Size::new(Val::Px(50.0), Val::Px(50.0)),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        background_color: NORMAL_BUTTON.into(),
                         ..default()
                     },
-                    background_color: NORMAL_BUTTON.into(),
-                    ..default()
-                })
+                    TimeScaleIncrement(1.0),
+                ))
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
                         "+",
