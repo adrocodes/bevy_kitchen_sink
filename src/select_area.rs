@@ -19,7 +19,7 @@ struct Region;
 pub struct Selectable;
 
 #[derive(Resource, Debug, Default)]
-pub struct SelectedEntities(Vec<Entity>);
+pub struct SelectedEntities(pub Vec<Entity>);
 
 #[derive(Debug)]
 struct ConfirmationEvent {
@@ -108,6 +108,10 @@ fn capture_region_confirmation(
     query: Query<(Entity, &Transform), With<Selectable>>,
     mut selected_entities: ResMut<SelectedEntities>,
 ) {
+    if ev_confirmation.is_empty() {
+        return;
+    }
+
     let mut entities: Vec<Entity> = Vec::new();
 
     for ev in ev_confirmation.iter() {
