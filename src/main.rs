@@ -1,12 +1,15 @@
 use bevy::prelude::*;
 use bevy_mouse_position::MousePositionPlugin;
+use mouse_over::MouseOverPlugin;
 
 use pancam::{PanCam, PanCamPlugin};
 // use command_defender::CommandDefenderPlugin;
-use select_area::SelectAreaPlugin;
-use solar_system::SolarSystemPlugin;
+// use select_area::SelectAreaPlugin;
+// use solar_system::SolarSystemPlugin;
 
-// mod command_defender;
+mod bounds;
+mod command_defender;
+mod mouse_over;
 mod pancam;
 mod select_area;
 mod solar_system;
@@ -18,6 +21,10 @@ const WINDOW_HEIGHT: f32 = 744.0;
 const BACKGROUND_COLOR: Color = Color::BLACK;
 
 fn spawn_camera(mut commands: Commands) {
+    // Without Pan Cam
+    // commands.spawn(Camera2dBundle::default());
+
+    // With Pan Cam
     commands.spawn(Camera2dBundle::default()).insert(PanCam {
         grab_buttons: vec![MouseButton::Middle],
         min_scale: 1.,
@@ -39,11 +46,12 @@ fn main() {
         }))
         .add_plugin(PanCamPlugin::default())
         .add_plugin(MousePositionPlugin)
+        .add_plugin(MouseOverPlugin)
         // .add_plugin(CommandDefenderPlugin)
-        .add_plugin(SelectAreaPlugin)
+        // .add_plugin(SelectAreaPlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(spawn_camera)
-        .add_plugin(SolarSystemPlugin)
+        // .add_plugin(SolarSystemPlugin)
         .add_system(bevy::window::close_on_esc)
         .run();
 }
