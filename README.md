@@ -21,3 +21,13 @@ A copy of this plugin - https://github.com/johanhelsing/bevy_pancam. Used to lea
 ## Solar System
 
 A really basic Solar System simulation.
+
+### Bounds
+
+A simple square bounds that can be used to detect if the mouse is over a given item.
+
+**Only works with Rectangle/Square shapes**
+
+### Mouse Over
+
+Demo of using **Bounds** to detect mouse over state.
