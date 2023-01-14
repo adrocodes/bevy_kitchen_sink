@@ -52,7 +52,7 @@ fn setup_tracking_region(mut commands: Commands) {
                 position_type: PositionType::Absolute,
                 ..default()
             },
-            background_color: Color::rgba_u8(255, 255, 255, 10).into(),
+            background_color: Color::rgba(1.0, 1.0, 1.0, 0.5).into(),
             visibility: Visibility { is_visible: false },
             ..default()
         },
