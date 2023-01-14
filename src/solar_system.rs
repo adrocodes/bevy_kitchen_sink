@@ -1,6 +1,6 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
-use crate::select_area::Selectable;
+use crate::select_area::{Selectable, SelectedEntities};
 
 pub struct SolarSystemPlugin;
 
@@ -32,7 +32,8 @@ impl Plugin for SolarSystemPlugin {
             .add_startup_system(spawn_planets)
             .add_system(rotate_planets_around_sun)
             .add_system(increment_timescale)
-            .add_system(time_scale_ui);
+            .add_system(time_scale_ui)
+            .add_system(handle_planet_selection);
     }
 }
 
@@ -370,4 +371,21 @@ fn setup_ui(mut commands: Commands, asset_server: Res<AssetServer>, time_scale: 
                     ));
                 });
         });
+}
+
+fn handle_planet_selection(
+    query: Query<(Entity, &Name), (With<Planet>, With<Selectable>)>,
+    selected: Res<SelectedEntities>,
+) {
+    if selected.is_changed() {
+        if selected.0.len() == 0 {
+            return;
+        }
+
+        for (id, name) in query.into_iter() {
+            if selected.0.contains(&id) {
+                println!("Selected: {}", name.0);
+            }
+        }
+    }
 }
