@@ -14,6 +14,7 @@ categories = ["games", "game-development"]
 [dependencies]
 bevy = { version = "0.9.1", features = ["dynamic"] }
 bevy_mouse_position = { git = "https://github.com/adrocodes/bevy_mouse_position", branch = "main" }
+noise = "0.8.2"
 rand = "0.8.5"
 
 # Enable a small amount of optimization in debug mode
