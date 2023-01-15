@@ -7,8 +7,9 @@ const WINDOW_HEIGHT: f32 = 744.0;
 
 const BACKGROUND_COLOR: Color = Color::BLACK;
 
+const TILE_COUNT: i32 = 20;
 const TILE_SIZE: f32 = 64.0;
-const TILE_OFFSET: f32 = (TILE_SIZE * 5.0) - (TILE_SIZE / 2.0);
+const TILE_OFFSET: f32 = (TILE_SIZE * (TILE_COUNT / 2) as f32) - (TILE_SIZE / 2.0);
 
 fn spawn_camera(mut commands: Commands) {
     // Without Pan Cam
@@ -51,9 +52,9 @@ impl Plugin for RandomSquaresPlugin {
 
 fn generate_map_grid(mut map_atlas: ResMut<MapAtlas>) {
     let mut rng = thread_rng();
-    let new_atlas: Vec<Vec<f32>> = (0..10)
+    let new_atlas: Vec<Vec<f32>> = (0..TILE_COUNT)
         .map(|_| {
-            let row: Vec<f32> = (0..10).map(|_| rng.gen::<f32>()).collect();
+            let row: Vec<f32> = (0..TILE_COUNT).map(|_| rng.gen::<f32>()).collect();
 
             row
         })
