@@ -31,3 +31,11 @@ A simple square bounds that can be used to detect if the mouse is over a given i
 ### Mouse Over
 
 Demo of using **Bounds** to detect mouse over state.
+
+### Examples - Random Squares
+
+Generates a square of tiles that are randomly assigned a tile based on a random 0-1 value. Just uses the `rand` package to generate the values.
+
+### Examples - Perlin Squares
+
+A copy of **Random Squares** but the `rand` package has been replaced with `noise` to generate the square using Perlin Noise.
