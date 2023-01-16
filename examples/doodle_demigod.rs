@@ -64,8 +64,15 @@ struct DoodleDemiGodPlugin;
 
 impl Plugin for DoodleDemiGodPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Recipes::default())
-            .add_startup_system(spawn_slots);
+        app.add_loading_state(
+            LoadingState::new(GameState::AssetLoading)
+                .continue_to_state(GameState::Next)
+                .with_collection::<TileAssets>(),
+        )
+        .add_state(GameState::AssetLoading)
+        .insert_resource(Recipes::default())
+        .add_startup_system(spawn_slots)
+        .add_system_set(SystemSet::on_enter(GameState::Next));
     }
 }
 
@@ -77,6 +84,12 @@ struct TileAssets {
     rocks: Handle<Image>,
     #[asset(path = "doodle_demigod/trees+rocks.png")]
     trees_rocks: Handle<Image>,
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+enum GameState {
+    AssetLoading,
+    Next,
 }
 
 #[derive(Resource)]
