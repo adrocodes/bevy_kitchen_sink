@@ -119,8 +119,8 @@ fn spawn_slots(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let size: f32 = 80.;
-    let child_size: f32 = 75.;
+    let size: f32 = 85.;
+    let child_size: f32 = size - 5.;
     let gap: f32 = 40.;
 
     let offset = 0. + size + (gap / 2.0);
