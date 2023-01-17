@@ -211,7 +211,7 @@ fn spawn_initial_tiles(
         .spawn((
             SpriteBundle {
                 sprite: Sprite {
-                    color: Color::NONE,
+                    color: Color::WHITE,
                     custom_size: Some(size),
                     anchor: Anchor::TopLeft,
                     ..default()
@@ -235,6 +235,10 @@ fn spawn_initial_tiles(
                 parent.spawn((
                     SpriteBundle {
                         texture: tile.asset(&tile_assets),
+                        sprite: Sprite {
+                            anchor: Anchor::TopLeft,
+                            ..default()
+                        },
                         ..default()
                     },
                     Tile(tile.clone()),
@@ -242,4 +246,17 @@ fn spawn_initial_tiles(
                 ));
             });
         });
+}
+
+fn reposition_tile_choices(
+    q_parent: Query<(&TileContainer, &Children)>,
+    mut q_tiles: Query<&mut Transform, With<Tile>>,
+) {
+    let (container, children) = q_parent.single();
+    let size = container.0;
+    let mut index = 0;
+
+    for &child in children.iter() {
+        if let Ok(mut transform) = q_tiles.get_mut(child) {};
+    }
 }
