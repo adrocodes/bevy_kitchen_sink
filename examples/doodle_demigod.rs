@@ -1,4 +1,7 @@
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::{
+    prelude::*,
+    sprite::{Anchor, MaterialMesh2dBundle},
+};
 use bevy_asset_loader::prelude::*;
 
 const WINDOW_TITLE: &str = "Doodle Demigod";
@@ -7,21 +10,33 @@ const WINDOW_HEIGHT: f32 = 744.0;
 
 const BACKGROUND_COLOR: Color = Color::BEIGE;
 
+const SLOT_SIZE: f32 = 85.0;
+
+#[derive(Clone)]
 enum TileType {
     Trees,
     Rocks,
     TreesRocks,
 }
 
-fn tile_type_name(tile: TileType) -> String {
-    let name = match tile {
-        TileType::Trees => "Trees",
-        TileType::Rocks => "Rocks",
-        TileType::TreesRocks => "Trees amoung Rocks",
-        _ => "No idea m80",
-    };
+impl TileType {
+    fn name(&self) -> String {
+        let name = match self {
+            TileType::Trees => "Trees",
+            TileType::Rocks => "Rocks",
+            TileType::TreesRocks => "Trees amoung Rocks",
+        };
 
-    name.to_string()
+        name.to_string()
+    }
+
+    fn asset(&self, assets: &TileAssets) -> Handle<Image> {
+        match self {
+            TileType::Trees => assets.trees.clone(),
+            TileType::Rocks => assets.rocks.clone(),
+            TileType::TreesRocks => assets.trees_rocks.clone(),
+        }
+    }
 }
 
 struct Recipe {
@@ -71,8 +86,11 @@ impl Plugin for DoodleDemiGodPlugin {
         )
         .add_state(GameState::AssetLoading)
         .insert_resource(Recipes::default())
-        .add_startup_system(spawn_slots)
-        .add_system_set(SystemSet::on_enter(GameState::Next));
+        .add_system_set(
+            SystemSet::on_enter(GameState::Next)
+                .with_system(spawn_slots)
+                .with_system(spawn_initial_tiles),
+        );
     }
 }
 
@@ -109,17 +127,20 @@ impl Default for Recipes {
 }
 
 #[derive(Component)]
-struct Slot;
+struct Slot(Option<TileType>);
 
 #[derive(Component)]
 struct Tile(TileType);
+
+#[derive(Component)]
+struct TileContainer(Vec2);
 
 fn spawn_slots(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    let size: f32 = 85.;
+    let size: f32 = SLOT_SIZE;
     let child_size: f32 = size - 5.;
     let gap: f32 = 40.;
 
@@ -145,7 +166,7 @@ fn spawn_slots(
                 transform: Transform::from_translation(Vec3::new(0., -offset, 0.)),
                 ..default()
             },
-            Slot,
+            Slot(None),
         ))
         .with_children(|parent| {
             parent.spawn(inner_child.clone());
@@ -162,9 +183,56 @@ fn spawn_slots(
                 transform: Transform::from_translation(Vec3::new(0., offset, 0.)),
                 ..default()
             },
-            Slot,
+            Slot(None),
         ))
         .with_children(|parent| {
             parent.spawn(inner_child.clone());
+        });
+}
+
+fn spawn_initial_tiles(
+    mut commands: Commands,
+    windows: Res<Windows>,
+    tile_assets: Res<TileAssets>,
+) {
+    let window = windows.get_primary().unwrap();
+    let width = window.width();
+    let height = window.height();
+
+    let half_width = width / 2.0;
+    let half_height = height / 2.0;
+
+    let parent_zone_width = half_width - SLOT_SIZE - 20.0;
+    let parent_zone_height = height - 20.0;
+
+    let size = Vec2::new(parent_zone_width, parent_zone_height);
+
+    commands
+        .spawn((
+            SpriteBundle {
+                sprite: Sprite {
+                    color: Color::NONE,
+                    custom_size: Some(size),
+                    anchor: Anchor::TopLeft,
+                    ..default()
+                },
+                transform: Transform::from_xyz(-half_width + 10.0, half_height - 10.0, 0.0),
+                ..default()
+            },
+            TileContainer(size),
+        ))
+        .with_children(|parent| {
+            vec![TileType::Trees, TileType::Rocks]
+                .iter()
+                .for_each(|tile| {
+                    parent.spawn((
+                        SpriteBundle {
+                            texture: tile.asset(&tile_assets),
+                            ..default()
+                        },
+                        Tile(tile.clone()),
+                        Name::new(tile.name()),
+                    ));
+                });
         });
 }
