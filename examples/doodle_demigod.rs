@@ -222,17 +222,24 @@ fn spawn_initial_tiles(
             TileContainer(size),
         ))
         .with_children(|parent| {
-            vec![TileType::Trees, TileType::Rocks]
-                .iter()
-                .for_each(|tile| {
-                    parent.spawn((
-                        SpriteBundle {
-                            texture: tile.asset(&tile_assets),
-                            ..default()
-                        },
-                        Tile(tile.clone()),
-                        Name::new(tile.name()),
-                    ));
-                });
+            vec![
+                TileType::Trees,
+                TileType::Rocks,
+                TileType::Trees,
+                TileType::Rocks,
+                TileType::TreesRocks,
+                TileType::Rocks,
+            ]
+            .iter()
+            .for_each(|tile| {
+                parent.spawn((
+                    SpriteBundle {
+                        texture: tile.asset(&tile_assets),
+                        ..default()
+                    },
+                    Tile(tile.clone()),
+                    Name::new(tile.name()),
+                ));
+            });
         });
 }
