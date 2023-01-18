@@ -11,6 +11,10 @@ const WINDOW_HEIGHT: f32 = 744.0;
 const BACKGROUND_COLOR: Color = Color::BEIGE;
 
 const SLOT_SIZE: f32 = 85.0;
+const TILE_GAP: f32 = 20.0;
+const TILE_WIDTH: f32 = 120.0;
+const TILE_HEIGHT: f32 = 140.0;
+const TILE_ROW_COUNT: f32 = 3.0;
 
 #[derive(Clone)]
 enum TileType {
@@ -90,7 +94,8 @@ impl Plugin for DoodleDemiGodPlugin {
             SystemSet::on_enter(GameState::Next)
                 .with_system(spawn_slots)
                 .with_system(spawn_initial_tiles),
-        );
+        )
+        .add_system_set(SystemSet::on_update(GameState::Next).with_system(reposition_tile_choices));
     }
 }
 
@@ -202,8 +207,8 @@ fn spawn_initial_tiles(
     let half_width = width / 2.0;
     let half_height = height / 2.0;
 
-    let parent_zone_width = half_width - SLOT_SIZE - 20.0;
-    let parent_zone_height = height - 20.0;
+    let parent_zone_width = (TILE_WIDTH * TILE_ROW_COUNT) + (TILE_GAP * (TILE_ROW_COUNT - 1.0));
+    let parent_zone_height = height - 40.0;
 
     let size = Vec2::new(parent_zone_width, parent_zone_height);
 
@@ -211,12 +216,12 @@ fn spawn_initial_tiles(
         .spawn((
             SpriteBundle {
                 sprite: Sprite {
-                    color: Color::WHITE,
+                    color: Color::NONE,
                     custom_size: Some(size),
                     anchor: Anchor::TopLeft,
                     ..default()
                 },
-                transform: Transform::from_xyz(-half_width + 10.0, half_height - 10.0, 0.0),
+                transform: Transform::from_xyz(-half_width + 20.0, half_height - 20.0, 0.0),
                 ..default()
             },
             TileContainer(size),
@@ -229,6 +234,10 @@ fn spawn_initial_tiles(
                 TileType::Rocks,
                 TileType::TreesRocks,
                 TileType::Rocks,
+                TileType::TreesRocks,
+                TileType::Trees,
+                TileType::Rocks,
+                TileType::TreesRocks,
             ]
             .iter()
             .for_each(|tile| {
@@ -249,14 +258,36 @@ fn spawn_initial_tiles(
 }
 
 fn reposition_tile_choices(
-    q_parent: Query<(&TileContainer, &Children)>,
+    q_parent: Query<&Children, With<TileContainer>>,
     mut q_tiles: Query<&mut Transform, With<Tile>>,
 ) {
-    let (container, children) = q_parent.single();
-    let size = container.0;
-    let mut index = 0;
+    let children = q_parent.single();
+    let mut x_offset: f32 = 0.0;
+    let mut y_offset: f32 = 0.0;
+    let mut offset_row: bool = false;
+
+    let gap: f32 = TILE_GAP;
 
     for &child in children.iter() {
-        if let Ok(mut transform) = q_tiles.get_mut(child) {};
+        if let Ok(mut transform) = q_tiles.get_mut(child) {
+            if (x_offset == TILE_ROW_COUNT && !offset_row)
+                || (x_offset == (TILE_ROW_COUNT - 1.0) && offset_row)
+            {
+                y_offset += 1.0;
+                x_offset = 0.0;
+                offset_row = !offset_row;
+            }
+
+            let offset_row_x: f32 = match offset_row {
+                true => (TILE_WIDTH / 2.0) + (gap / 2.0),
+                _ => 0.0,
+            };
+            let x = ((TILE_WIDTH + gap) * x_offset) + offset_row_x;
+            let y = (TILE_HEIGHT - gap) * y_offset;
+
+            transform.translation = Vec3::new(x, -y, 0.0);
+
+            x_offset += 1.0;
+        };
     }
 }
