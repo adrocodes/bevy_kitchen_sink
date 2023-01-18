@@ -244,10 +244,7 @@ fn spawn_initial_tiles(
                 parent.spawn((
                     SpriteBundle {
                         texture: tile.asset(&tile_assets),
-                        sprite: Sprite {
-                            anchor: Anchor::TopLeft,
-                            ..default()
-                        },
+                        sprite: Sprite { ..default() },
                         ..default()
                     },
                     Tile(tile.clone()),
@@ -282,8 +279,8 @@ fn reposition_tile_choices(
                 true => (TILE_WIDTH / 2.0) + (gap / 2.0),
                 _ => 0.0,
             };
-            let x = ((TILE_WIDTH + gap) * x_offset) + offset_row_x;
-            let y = (TILE_HEIGHT - gap) * y_offset;
+            let x = ((TILE_WIDTH + gap) * x_offset) + offset_row_x + (TILE_WIDTH / 2.0);
+            let y = (TILE_HEIGHT - gap) * y_offset + (TILE_HEIGHT / 2.0);
 
             transform.translation = Vec3::new(x, -y, 0.0);
 
