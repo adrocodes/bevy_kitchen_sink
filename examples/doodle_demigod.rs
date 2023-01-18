@@ -3,6 +3,7 @@ use bevy::{
     sprite::{Anchor, MaterialMesh2dBundle},
 };
 use bevy_asset_loader::prelude::*;
+use bevy_mouse_position::{MousePositionPlugin, WorldPosition};
 
 const WINDOW_TITLE: &str = "Doodle Demigod";
 const WINDOW_WIDTH: f32 = 1133.0;
@@ -72,6 +73,7 @@ fn main() {
             },
             ..default()
         }))
+        .add_plugin(MousePositionPlugin)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(spawn_camera)
         .add_plugin(DoodleDemiGodPlugin)
@@ -95,7 +97,12 @@ impl Plugin for DoodleDemiGodPlugin {
                 .with_system(spawn_slots)
                 .with_system(spawn_initial_tiles),
         )
-        .add_system_set(SystemSet::on_update(GameState::Next).with_system(reposition_tile_choices));
+        .add_system_set(
+            SystemSet::on_update(GameState::Next)
+                .with_system(reposition_tile_choices.label("tile_reposition"))
+                .with_system(update_bounds_position.after("tile_reposition"))
+                .with_system(hover_square),
+        );
     }
 }
 
@@ -139,6 +146,35 @@ struct Tile(TileType);
 
 #[derive(Component)]
 struct TileContainer(Vec2);
+
+#[derive(Component)]
+struct Hovered;
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct Bounds2 {
+    pub position: Vec2,
+    pub size: Vec2,
+}
+
+impl Bounds2 {
+    pub fn in_bounds(&self, coords: Vec2) -> bool {
+        coords.x >= self.position.x
+            && coords.y >= self.position.y
+            && coords.x <= self.position.x + self.size.x
+            && coords.y <= self.position.y + self.size.y
+    }
+
+    pub fn in_bounds_centered(&self, coords: Vec2) -> bool {
+        let half_size = self.size * Vec2::new(0.5, 0.5);
+        let new_position = self.position - half_size;
+        let bounds = Bounds2 {
+            position: new_position,
+            size: self.size,
+        };
+
+        return bounds.in_bounds(coords);
+    }
+}
 
 fn spawn_slots(
     mut commands: Commands,
@@ -227,30 +263,23 @@ fn spawn_initial_tiles(
             TileContainer(size),
         ))
         .with_children(|parent| {
-            vec![
-                TileType::Trees,
-                TileType::Rocks,
-                TileType::Trees,
-                TileType::Rocks,
-                TileType::TreesRocks,
-                TileType::Rocks,
-                TileType::TreesRocks,
-                TileType::Trees,
-                TileType::Rocks,
-                TileType::TreesRocks,
-            ]
-            .iter()
-            .for_each(|tile| {
-                parent.spawn((
-                    SpriteBundle {
-                        texture: tile.asset(&tile_assets),
-                        sprite: Sprite { ..default() },
-                        ..default()
-                    },
-                    Tile(tile.clone()),
-                    Name::new(tile.name()),
-                ));
-            });
+            vec![TileType::Trees, TileType::Rocks]
+                .iter()
+                .for_each(|tile| {
+                    parent.spawn((
+                        SpriteBundle {
+                            texture: tile.asset(&tile_assets),
+                            sprite: Sprite { ..default() },
+                            ..default()
+                        },
+                        Tile(tile.clone()),
+                        Name::new(tile.name()),
+                        Bounds2 {
+                            position: Vec2::default(),
+                            size: Vec2::new(TILE_WIDTH, TILE_HEIGHT),
+                        },
+                    ));
+                });
         });
 }
 
@@ -286,5 +315,28 @@ fn reposition_tile_choices(
 
             x_offset += 1.0;
         };
+    }
+}
+
+fn update_bounds_position(mut tiles: Query<(&GlobalTransform, &mut Bounds2), With<Tile>>) {
+    for (transform, mut bounds) in tiles.iter_mut() {
+        let t = transform.translation();
+        bounds.position = Vec2::new(t.x, t.y);
+    }
+}
+
+fn hover_square(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut Transform, &Bounds2)>,
+    mouse_position: Res<WorldPosition>,
+) {
+    for (entity, mut transform, bounds) in query.iter_mut() {
+        if bounds.in_bounds_centered(mouse_position.0) {
+            transform.scale = Vec3::new(1.1, 1.1, 1.1);
+            commands.entity(entity).insert(Hovered);
+        } else {
+            transform.scale = Vec3::new(1.0, 1.0, 1.0);
+            commands.entity(entity).remove::<Hovered>();
+        }
     }
 }
