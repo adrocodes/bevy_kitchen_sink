@@ -332,7 +332,7 @@ fn hover_square(
 ) {
     for (entity, mut transform, bounds) in query.iter_mut() {
         if bounds.in_bounds_centered(mouse_position.0) {
-            transform.scale = Vec3::new(1.1, 1.1, 1.1);
+            transform.scale = transform.scale.lerp(Vec3::new(1.15, 1.15, 1.1), 0.2);
             commands.entity(entity).insert(Hovered);
         } else {
             transform.scale = Vec3::new(1.0, 1.0, 1.0);
