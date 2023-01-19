@@ -200,23 +200,6 @@ fn spawn_slots(
         ..default()
     };
 
-    // Top Slot
-    commands
-        .spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes
-                    .add(shape::RegularPolygon::new(size, 6).into())
-                    .into(),
-                material: materials.add(ColorMaterial::from(Color::BLACK)),
-                transform: Transform::from_translation(Vec3::new(0., -offset, 0.)),
-                ..default()
-            },
-            Slot(None),
-        ))
-        .with_children(|parent| {
-            parent.spawn(inner_child.clone());
-        });
-
     // Bottom Slot
     commands
         .spawn((
@@ -226,6 +209,23 @@ fn spawn_slots(
                     .into(),
                 material: materials.add(ColorMaterial::from(Color::BLACK)),
                 transform: Transform::from_translation(Vec3::new(0., offset, 0.)),
+                ..default()
+            },
+            Slot(None),
+        ))
+        .with_children(|parent| {
+            parent.spawn(inner_child.clone());
+        });
+
+    // Top Slot
+    commands
+        .spawn((
+            MaterialMesh2dBundle {
+                mesh: meshes
+                    .add(shape::RegularPolygon::new(size, 6).into())
+                    .into(),
+                material: materials.add(ColorMaterial::from(Color::BLACK)),
+                transform: Transform::from_translation(Vec3::new(0., -offset, 0.)),
                 ..default()
             },
             Slot(None),
