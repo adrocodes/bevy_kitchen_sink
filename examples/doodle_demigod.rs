@@ -17,7 +17,7 @@ const TILE_WIDTH: f32 = 120.0;
 const TILE_HEIGHT: f32 = 140.0;
 const TILE_ROW_COUNT: f32 = 3.0;
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq, Copy)]
 enum TileType {
     Trees,
     Rocks,
@@ -101,7 +101,8 @@ impl Plugin for DoodleDemiGodPlugin {
             SystemSet::on_update(GameState::Next)
                 .with_system(reposition_tile_choices.label("tile_reposition"))
                 .with_system(update_bounds_position.after("tile_reposition"))
-                .with_system(hover_square),
+                .with_system(hover_square)
+                .with_system(select_tile),
         );
     }
 }
@@ -140,6 +141,9 @@ impl Default for Recipes {
 
 #[derive(Component)]
 struct Slot(Option<TileType>);
+
+#[derive(Component)]
+struct BelongsTo(Entity);
 
 #[derive(Component)]
 struct Tile(TileType);
@@ -325,18 +329,55 @@ fn update_bounds_position(mut tiles: Query<(&GlobalTransform, &mut Bounds2), Wit
     }
 }
 
-fn hover_square(
-    mut commands: Commands,
-    mut query: Query<(Entity, &mut Transform, &Bounds2)>,
-    mouse_position: Res<WorldPosition>,
-) {
-    for (entity, mut transform, bounds) in query.iter_mut() {
+fn hover_square(mut query: Query<(&mut Transform, &Bounds2)>, mouse_position: Res<WorldPosition>) {
+    for (mut transform, bounds) in query.iter_mut() {
         if bounds.in_bounds_centered(mouse_position.0) {
             transform.scale = transform.scale.lerp(Vec3::new(1.15, 1.15, 1.1), 0.2);
-            commands.entity(entity).insert(Hovered);
         } else {
             transform.scale = Vec3::new(1.0, 1.0, 1.0);
-            commands.entity(entity).remove::<Hovered>();
+        }
+    }
+}
+
+fn select_tile(
+    mut commands: Commands,
+    buttons: Res<Input<MouseButton>>,
+    tile_query: Query<(&Tile, &Bounds2, &GlobalTransform)>,
+    mut slots_query: Query<(Entity, &mut Slot, &GlobalTransform)>,
+    mouse_position: Res<WorldPosition>,
+    tile_assets: Res<TileAssets>,
+) {
+    if buttons.just_pressed(MouseButton::Left) {
+        let tile = tile_query
+            .iter()
+            .filter(|(_, bounds, _)| bounds.in_bounds_centered(mouse_position.0))
+            .collect::<Vec<_>>();
+
+        if let Some(tile) = tile.get(0) {
+            let tile = tile.0;
+
+            for (entity, mut slot, transform) in slots_query.iter_mut() {
+                if slot.0 != None {
+                    continue;
+                }
+
+                slot.0 = Some(tile.0);
+
+                commands.spawn((
+                    SpriteBundle {
+                        texture: tile.0.asset(&tile_assets),
+                        transform: Transform::from_xyz(
+                            transform.translation().x,
+                            transform.translation().y,
+                            2.0,
+                        ),
+                        ..default()
+                    },
+                    BelongsTo(entity),
+                ));
+
+                break;
+            }
         }
     }
 }
