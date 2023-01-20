@@ -102,7 +102,8 @@ impl Plugin for DoodleDemiGodPlugin {
                 .with_system(reposition_tile_choices.label("tile_reposition"))
                 .with_system(update_bounds_position.after("tile_reposition"))
                 .with_system(hover_square)
-                .with_system(select_tile),
+                .with_system(select_tile)
+                .with_system(move_to_goal_translation),
         );
     }
 }
@@ -144,6 +145,9 @@ struct Slot(Option<TileType>);
 
 #[derive(Component)]
 struct BelongsTo(Entity);
+
+#[derive(Component)]
+struct GoalTranslation(Vec3);
 
 #[derive(Component)]
 struct Tile(TileType);
@@ -354,30 +358,41 @@ fn select_tile(
             .collect::<Vec<_>>();
 
         if let Some(tile) = tile.get(0) {
-            let tile = tile.0;
+            let c_tile = tile.0;
+            let tile_transform = tile.2;
 
             for (entity, mut slot, transform) in slots_query.iter_mut() {
                 if slot.0 != None {
                     continue;
                 }
 
-                slot.0 = Some(tile.0);
+                slot.0 = Some(c_tile.0);
+
+                let mut goal: Vec3 = Vec3::from(transform.translation());
+                goal.z = 2.0;
 
                 commands.spawn((
                     SpriteBundle {
-                        texture: tile.0.asset(&tile_assets),
+                        texture: c_tile.0.asset(&tile_assets),
                         transform: Transform::from_xyz(
-                            transform.translation().x,
-                            transform.translation().y,
+                            tile_transform.translation().x,
+                            tile_transform.translation().y,
                             2.0,
                         ),
                         ..default()
                     },
                     BelongsTo(entity),
+                    GoalTranslation(goal),
                 ));
 
                 break;
             }
         }
+    }
+}
+
+fn move_to_goal_translation(mut query: Query<(&mut Transform, &GoalTranslation)>) {
+    for (mut transform, goal) in query.iter_mut() {
+        transform.translation = transform.translation.lerp(goal.0, 0.5);
     }
 }
