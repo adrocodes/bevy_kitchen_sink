@@ -326,7 +326,9 @@ fn reposition_tile_choices(
     }
 }
 
-fn update_bounds_position(mut tiles: Query<(&GlobalTransform, &mut Bounds2), With<Tile>>) {
+fn update_bounds_position(
+    mut tiles: Query<(&GlobalTransform, &mut Bounds2), Or<(With<Tile>, With<GoalTranslation>)>>,
+) {
     for (transform, mut bounds) in tiles.iter_mut() {
         let t = transform.translation();
         bounds.position = Vec2::new(t.x, t.y);
@@ -370,19 +372,24 @@ fn select_tile(
 
                 let mut goal: Vec3 = Vec3::from(transform.translation());
                 goal.z = 2.0;
+                let sprite_transform = Transform::from_xyz(
+                    tile_transform.translation().x,
+                    tile_transform.translation().y,
+                    2.0,
+                );
 
                 commands.spawn((
                     SpriteBundle {
                         texture: c_tile.0.asset(&tile_assets),
-                        transform: Transform::from_xyz(
-                            tile_transform.translation().x,
-                            tile_transform.translation().y,
-                            2.0,
-                        ),
+                        transform: sprite_transform,
                         ..default()
                     },
                     BelongsTo(entity),
                     GoalTranslation(goal),
+                    Bounds2 {
+                        position: Vec2::default(),
+                        size: Vec2::new(TILE_WIDTH, TILE_HEIGHT),
+                    },
                 ));
 
                 break;
