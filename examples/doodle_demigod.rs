@@ -103,6 +103,7 @@ impl Plugin for DoodleDemiGodPlugin {
                 .with_system(update_bounds_position.after("tile_reposition"))
                 .with_system(hover_square)
                 .with_system(select_tile)
+                .with_system(deselect_tile)
                 .with_system(move_to_goal_translation),
         );
     }
@@ -393,6 +394,36 @@ fn select_tile(
                 ));
 
                 break;
+            }
+        }
+    }
+}
+
+fn deselect_tile(
+    mut commands: Commands,
+    buttons: Res<Input<MouseButton>>,
+    mut slot_query: Query<(Entity, &mut Slot)>,
+    tile_query: Query<(Entity, &Bounds2, &BelongsTo)>,
+    mouse_position: Res<WorldPosition>,
+) {
+    if buttons.just_pressed(MouseButton::Left) {
+        let tile = tile_query
+            .iter()
+            .filter(|(_, bounds, _)| bounds.in_bounds_centered(mouse_position.0))
+            .collect::<Vec<_>>();
+
+        if let Some(tile) = tile.get(0) {
+            let tile_entity = tile.0;
+            let tile_belongs_to = tile.2;
+
+            for (slot_entity, mut slot) in slot_query.iter_mut() {
+                if slot_entity != tile_belongs_to.0 {
+                    continue;
+                }
+
+                slot.0 = None;
+
+                commands.entity(tile_entity).despawn();
             }
         }
     }
