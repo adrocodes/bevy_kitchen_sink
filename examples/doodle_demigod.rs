@@ -17,7 +17,7 @@ const TILE_WIDTH: f32 = 120.0;
 const TILE_HEIGHT: f32 = 140.0;
 const TILE_ROW_COUNT: f32 = 3.0;
 
-#[derive(Clone, Eq, PartialEq, Copy)]
+#[derive(Clone, Eq, PartialEq, Copy, PartialOrd, Ord)]
 enum TileType {
     Trees,
     Rocks,
@@ -58,6 +58,10 @@ impl Recipe {
     }
 }
 
+struct TileSelectEvent;
+struct ClearSlotsEvent;
+struct SpawnRecipeTileEvent(TileType);
+
 fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 }
@@ -91,6 +95,9 @@ impl Plugin for DoodleDemiGodPlugin {
                 .with_collection::<TileAssets>(),
         )
         .add_state(GameState::AssetLoading)
+        .add_event::<TileSelectEvent>()
+        .add_event::<ClearSlotsEvent>()
+        .add_event::<SpawnRecipeTileEvent>()
         .insert_resource(Recipes::default())
         .add_system_set(
             SystemSet::on_enter(GameState::Next)
@@ -102,9 +109,20 @@ impl Plugin for DoodleDemiGodPlugin {
                 .with_system(reposition_tile_choices.label("tile_reposition"))
                 .with_system(update_bounds_position.after("tile_reposition"))
                 .with_system(hover_square)
-                .with_system(select_tile)
+                .with_system(select_tile.label("select_title"))
                 .with_system(deselect_tile)
-                .with_system(move_to_goal_translation),
+                .with_system(
+                    move_to_goal_translation
+                        .after("select_tile")
+                        .label("goal_transition"),
+                )
+                .with_system(
+                    determine_valid_recipe
+                        .after("goal_transition")
+                        .label("recipe_check"),
+                )
+                .with_system(clear_slots.after("recipe_check").label("slot_clear"))
+                .with_system(spawn_recipe_tile.after("slot_clear")),
         );
     }
 }
@@ -128,6 +146,21 @@ enum GameState {
 #[derive(Resource)]
 struct Recipes(Vec<Recipe>);
 
+impl Recipes {
+    fn find_by_tiles(&self, mut tiles: [Option<TileType>; 2]) -> Option<TileType> {
+        let recipe = self.0.iter().find(|r| {
+            let mut ingredients = r.ingredients;
+
+            ingredients.sort() == tiles.sort()
+        });
+
+        match recipe {
+            Some(r) => Some(r.result),
+            _ => None,
+        }
+    }
+}
+
 impl Default for Recipes {
     fn default() -> Self {
         let mut recipes: Vec<Recipe> = vec![];
@@ -141,8 +174,15 @@ impl Default for Recipes {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, PartialEq)]
 struct Slot(Option<TileType>);
+
+impl Slot {
+    fn all_slots_occupied(slots: &Vec<&Slot>) -> bool {
+        let empty_slot = slots.iter().find(|s| s.0 == None);
+        return empty_slot == None;
+    }
+}
 
 #[derive(Component)]
 struct BelongsTo(Entity);
@@ -150,8 +190,14 @@ struct BelongsTo(Entity);
 #[derive(Component)]
 struct GoalTranslation(Vec3);
 
-#[derive(Component)]
+#[derive(Component, PartialEq)]
 struct Tile(TileType);
+
+impl Tile {
+    fn existing_tile(tiles: &Vec<&Tile>, search: &Tile) -> bool {
+        tiles.contains(&search)
+    }
+}
 
 #[derive(Component)]
 struct TileContainer(Vec2);
@@ -353,6 +399,7 @@ fn select_tile(
     mut slots_query: Query<(Entity, &mut Slot, &GlobalTransform)>,
     mouse_position: Res<WorldPosition>,
     tile_assets: Res<TileAssets>,
+    mut ev_tile_selected: EventWriter<TileSelectEvent>,
 ) {
     if buttons.just_pressed(MouseButton::Left) {
         let tile = tile_query
@@ -392,6 +439,8 @@ fn select_tile(
                         size: Vec2::new(TILE_WIDTH, TILE_HEIGHT),
                     },
                 ));
+
+                ev_tile_selected.send(TileSelectEvent);
 
                 break;
             }
@@ -433,4 +482,100 @@ fn move_to_goal_translation(mut query: Query<(&mut Transform, &GoalTranslation)>
     for (mut transform, goal) in query.iter_mut() {
         transform.translation = transform.translation.lerp(goal.0, 0.5);
     }
+}
+
+fn determine_valid_recipe(
+    ev_tile_selected: EventReader<TileSelectEvent>,
+    mut ev_clear_slots: EventWriter<ClearSlotsEvent>,
+    mut ev_spawn_recipe_tile: EventWriter<SpawnRecipeTileEvent>,
+    slots: Query<&mut Slot>,
+    recipes: Res<Recipes>,
+    tiles: Query<&Tile>,
+) {
+    if ev_tile_selected.is_empty() {
+        return;
+    }
+
+    let all_slots = &slots.iter().collect::<Vec<_>>();
+    let all_tiles = tiles.iter().collect::<Vec<_>>();
+
+    if Slot::all_slots_occupied(&all_slots) {
+        let s1 = all_slots.get(0).unwrap();
+        let s2 = all_slots.get(1).unwrap();
+        let tiles: [Option<TileType>; 2] = [s1.0, s2.0];
+        let recipe = recipes.find_by_tiles(tiles);
+
+        if let Some(recipe) = recipe {
+            let tile = Tile(recipe);
+
+            if !Tile::existing_tile(&all_tiles, &tile) {
+                println!("New recipe found, need to spawn shit");
+                ev_spawn_recipe_tile.send(SpawnRecipeTileEvent(recipe));
+            }
+        }
+
+        ev_clear_slots.send(ClearSlotsEvent);
+    }
+
+    ev_tile_selected.clear();
+}
+
+fn clear_slots(
+    mut commands: Commands,
+    ev_clear_slots: EventReader<ClearSlotsEvent>,
+    mut slots: Query<&mut Slot>,
+    selected_tiles: Query<Entity, With<BelongsTo>>,
+) {
+    if ev_clear_slots.is_empty() {
+        return;
+    }
+    debug!("Clear Slots");
+
+    for mut slot in slots.iter_mut() {
+        slot.0 = None;
+    }
+
+    for tile in selected_tiles.iter() {
+        commands.entity(tile).despawn();
+    }
+
+    ev_clear_slots.clear();
+}
+
+fn spawn_recipe_tile(
+    mut commands: Commands,
+    mut ev_recipe_tile: EventReader<SpawnRecipeTileEvent>,
+    tile_assets: Res<TileAssets>,
+    tile_container: Query<Entity, With<TileContainer>>,
+) {
+    if ev_recipe_tile.is_empty() {
+        return;
+    }
+    debug!("Spawn new tile");
+
+    let tile = ev_recipe_tile.iter().collect::<Vec<_>>();
+
+    if let Some(tile) = tile.get(0) {
+        let tile = tile.0;
+        let parent = tile_container.single();
+        let child = commands
+            .spawn((
+                SpriteBundle {
+                    texture: tile.asset(&tile_assets),
+                    sprite: Sprite { ..default() },
+                    ..default()
+                },
+                Tile(tile.clone()),
+                Name::new(tile.name()),
+                Bounds2 {
+                    position: Vec2::default(),
+                    size: Vec2::new(TILE_WIDTH, TILE_HEIGHT),
+                },
+            ))
+            .id();
+
+        commands.entity(parent).push_children(&[child]);
+    }
+
+    ev_recipe_tile.clear()
 }
