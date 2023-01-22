@@ -528,7 +528,6 @@ fn clear_slots(
     if ev_clear_slots.is_empty() {
         return;
     }
-    debug!("Clear Slots");
 
     for mut slot in slots.iter_mut() {
         slot.0 = None;
@@ -550,7 +549,6 @@ fn spawn_recipe_tile(
     if ev_recipe_tile.is_empty() {
         return;
     }
-    debug!("Spawn new tile");
 
     let tile = ev_recipe_tile.iter().collect::<Vec<_>>();
 
