@@ -511,10 +511,9 @@ fn determine_valid_recipe(
             if !Tile::existing_tile(&all_tiles, &tile) {
                 println!("New recipe found, need to spawn shit");
                 ev_spawn_recipe_tile.send(SpawnRecipeTileEvent(recipe));
+                ev_clear_slots.send(ClearSlotsEvent);
             }
         }
-
-        ev_clear_slots.send(ClearSlotsEvent);
     }
 
     ev_tile_selected.clear();
