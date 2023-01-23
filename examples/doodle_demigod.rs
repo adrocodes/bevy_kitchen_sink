@@ -17,6 +17,10 @@ const TILE_WIDTH: f32 = 120.0;
 const TILE_HEIGHT: f32 = 140.0;
 const TILE_ROW_COUNT: f32 = 3.0;
 
+const NORMAL_BUTTON: Color = Color::BLACK;
+const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
+const PRESSED_BUTTON: Color = Color::DARK_GREEN;
+
 #[derive(Clone, Eq, PartialEq, Copy, PartialOrd, Ord)]
 enum TileType {
     Trees,
@@ -102,7 +106,8 @@ impl Plugin for DoodleDemiGodPlugin {
         .add_system_set(
             SystemSet::on_enter(GameState::Next)
                 .with_system(spawn_slots)
-                .with_system(spawn_initial_tiles),
+                .with_system(spawn_initial_tiles)
+                .with_system(spawn_merge_button),
         )
         .add_system_set(
             SystemSet::on_update(GameState::Next)
@@ -116,13 +121,9 @@ impl Plugin for DoodleDemiGodPlugin {
                         .after("select_tile")
                         .label("goal_transition"),
                 )
-                .with_system(
-                    determine_valid_recipe
-                        .after("goal_transition")
-                        .label("recipe_check"),
-                )
-                .with_system(clear_slots.after("recipe_check").label("slot_clear"))
-                .with_system(spawn_recipe_tile.after("slot_clear")),
+                .with_system(check_merge)
+                .with_system(clear_slots)
+                .with_system(spawn_recipe_tile),
         );
     }
 }
@@ -238,7 +239,7 @@ fn spawn_slots(
 ) {
     let size: f32 = SLOT_SIZE;
     let child_size: f32 = size - 5.;
-    let gap: f32 = 40.;
+    let gap: f32 = 80.;
 
     let offset = 0. + size + (gap / 2.0);
 
@@ -335,6 +336,34 @@ fn spawn_initial_tiles(
                         },
                     ));
                 });
+        });
+}
+
+fn spawn_merge_button(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands
+        .spawn(ButtonBundle {
+            style: Style {
+                size: Size::new(Val::Px(175.0), Val::Px(65.0)),
+                // center button
+                margin: UiRect::all(Val::Auto),
+                // horizontally center child text
+                justify_content: JustifyContent::Center,
+                // vertically center child text
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            background_color: NORMAL_BUTTON.into(),
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn(TextBundle::from_section(
+                "COMBINE",
+                TextStyle {
+                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    font_size: 40.0,
+                    color: Color::rgb(0.9, 0.9, 0.9),
+                },
+            ));
         });
 }
 
@@ -484,41 +513,6 @@ fn move_to_goal_translation(mut query: Query<(&mut Transform, &GoalTranslation)>
     }
 }
 
-fn determine_valid_recipe(
-    ev_tile_selected: EventReader<TileSelectEvent>,
-    mut ev_clear_slots: EventWriter<ClearSlotsEvent>,
-    mut ev_spawn_recipe_tile: EventWriter<SpawnRecipeTileEvent>,
-    slots: Query<&mut Slot>,
-    recipes: Res<Recipes>,
-    tiles: Query<&Tile>,
-) {
-    if ev_tile_selected.is_empty() {
-        return;
-    }
-
-    let all_slots = &slots.iter().collect::<Vec<_>>();
-    let all_tiles = tiles.iter().collect::<Vec<_>>();
-
-    if Slot::all_slots_occupied(&all_slots) {
-        let s1 = all_slots.get(0).unwrap();
-        let s2 = all_slots.get(1).unwrap();
-        let tiles: [Option<TileType>; 2] = [s1.0, s2.0];
-        let recipe = recipes.find_by_tiles(tiles);
-
-        if let Some(recipe) = recipe {
-            let tile = Tile(recipe);
-
-            if !Tile::existing_tile(&all_tiles, &tile) {
-                println!("New recipe found, need to spawn shit");
-                ev_spawn_recipe_tile.send(SpawnRecipeTileEvent(recipe));
-                ev_clear_slots.send(ClearSlotsEvent);
-            }
-        }
-    }
-
-    ev_tile_selected.clear();
-}
-
 fn clear_slots(
     mut commands: Commands,
     ev_clear_slots: EventReader<ClearSlotsEvent>,
@@ -575,4 +569,50 @@ fn spawn_recipe_tile(
     }
 
     ev_recipe_tile.clear()
+}
+
+fn check_merge(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut ev_clear_slots: EventWriter<ClearSlotsEvent>,
+    mut ev_spawn_recipe_tile: EventWriter<SpawnRecipeTileEvent>,
+    slots: Query<&mut Slot>,
+    recipes: Res<Recipes>,
+    tiles: Query<&Tile>,
+) {
+    for (interaction, mut color) in &mut interaction_query {
+        match *interaction {
+            Interaction::Clicked => {
+                *color = PRESSED_BUTTON.into();
+
+                let all_slots = &slots.iter().collect::<Vec<_>>();
+                let all_tiles = tiles.iter().collect::<Vec<_>>();
+
+                if Slot::all_slots_occupied(&all_slots) {
+                    let s1 = all_slots.get(0).unwrap();
+                    let s2 = all_slots.get(1).unwrap();
+                    let tiles: [Option<TileType>; 2] = [s1.0, s2.0];
+                    let recipe = recipes.find_by_tiles(tiles);
+
+                    if let Some(recipe) = recipe {
+                        let tile = Tile(recipe);
+
+                        if !Tile::existing_tile(&all_tiles, &tile) {
+                            println!("New recipe found, need to spawn shit");
+                            ev_spawn_recipe_tile.send(SpawnRecipeTileEvent(recipe));
+                            ev_clear_slots.send(ClearSlotsEvent);
+                        }
+                    }
+                }
+            }
+            Interaction::Hovered => {
+                *color = HOVERED_BUTTON.into();
+            }
+            Interaction::None => {
+                *color = NORMAL_BUTTON.into();
+            }
+        }
+    }
 }
