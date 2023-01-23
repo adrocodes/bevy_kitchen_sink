@@ -103,6 +103,7 @@ impl Plugin for DoodleDemiGodPlugin {
         .add_event::<ClearSlotsEvent>()
         .add_event::<SpawnRecipeTileEvent>()
         .insert_resource(Recipes::default())
+        .insert_resource(SlotBorderColor(Color::BLACK))
         .add_system_set(
             SystemSet::on_enter(GameState::Next)
                 .with_system(spawn_slots)
@@ -175,6 +176,9 @@ impl Default for Recipes {
     }
 }
 
+#[derive(Resource)]
+struct SlotBorderColor(Color);
+
 #[derive(Component, PartialEq)]
 struct Slot(Option<TileType>);
 
@@ -236,6 +240,7 @@ fn spawn_slots(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
+    border: Res<SlotBorderColor>,
 ) {
     let size: f32 = SLOT_SIZE;
     let child_size: f32 = size - 5.;
@@ -259,7 +264,7 @@ fn spawn_slots(
                 mesh: meshes
                     .add(shape::RegularPolygon::new(size, 6).into())
                     .into(),
-                material: materials.add(ColorMaterial::from(Color::BLACK)),
+                material: materials.add(ColorMaterial::from(border.0)),
                 transform: Transform::from_translation(Vec3::new(0., offset, 0.)),
                 ..default()
             },
@@ -276,7 +281,7 @@ fn spawn_slots(
                 mesh: meshes
                     .add(shape::RegularPolygon::new(size, 6).into())
                     .into(),
-                material: materials.add(ColorMaterial::from(Color::BLACK)),
+                material: materials.add(ColorMaterial::from(border.0)),
                 transform: Transform::from_translation(Vec3::new(0., -offset, 0.)),
                 ..default()
             },
@@ -573,7 +578,7 @@ fn spawn_recipe_tile(
 
 fn check_merge(
     mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor),
+        (&Interaction, &mut BackgroundColor, &mut Transform),
         (Changed<Interaction>, With<Button>),
     >,
     mut ev_clear_slots: EventWriter<ClearSlotsEvent>,
@@ -582,10 +587,11 @@ fn check_merge(
     recipes: Res<Recipes>,
     tiles: Query<&Tile>,
 ) {
-    for (interaction, mut color) in &mut interaction_query {
+    for (interaction, mut color, mut transform) in &mut interaction_query {
         match *interaction {
             Interaction::Clicked => {
                 *color = PRESSED_BUTTON.into();
+                transform.scale = Vec3::new(1.0, 1.0, 1.0);
 
                 let all_slots = &slots.iter().collect::<Vec<_>>();
                 let all_tiles = tiles.iter().collect::<Vec<_>>();
@@ -608,10 +614,12 @@ fn check_merge(
                 }
             }
             Interaction::Hovered => {
+                transform.scale = transform.scale.lerp(Vec3::new(1.1, 1.1, 1.1), 0.9);
                 *color = HOVERED_BUTTON.into();
             }
             Interaction::None => {
                 *color = NORMAL_BUTTON.into();
+                transform.scale = Vec3::new(1.0, 1.0, 1.0);
             }
         }
     }
