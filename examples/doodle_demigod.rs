@@ -137,6 +137,14 @@ struct TileAssets {
     rocks: Handle<Image>,
     #[asset(path = "doodle_demigod/trees+rocks.png")]
     trees_rocks: Handle<Image>,
+    #[asset(path = "doodle_demigod/stone.png")]
+    stone: Handle<Image>,
+    #[asset(path = "doodle_demigod/fountain+stone_trees.png")]
+    fountain_stone_trees: Handle<Image>,
+    #[asset(path = "doodle_demigod/fountain.png")]
+    fountain: Handle<Image>,
+    #[asset(path = "doodle_demigod/stone+trees.png")]
+    stone_trees: Handle<Image>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
