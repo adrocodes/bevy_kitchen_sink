@@ -26,6 +26,10 @@ enum TileType {
     Trees,
     Rocks,
     TreesRocks,
+    Stone,
+    Fountain,
+    FountainStoneTrees,
+    StoneTrees,
 }
 
 impl TileType {
@@ -34,6 +38,10 @@ impl TileType {
             TileType::Trees => "Trees",
             TileType::Rocks => "Rocks",
             TileType::TreesRocks => "Trees amoung Rocks",
+            TileType::Fountain => "Fountain",
+            TileType::Stone => "Stone",
+            TileType::FountainStoneTrees => "Fountain among trees",
+            TileType::StoneTrees => "Stone Trees",
         };
 
         name.to_string()
@@ -44,6 +52,10 @@ impl TileType {
             TileType::Trees => assets.trees.clone(),
             TileType::Rocks => assets.rocks.clone(),
             TileType::TreesRocks => assets.trees_rocks.clone(),
+            TileType::Fountain => assets.fountain.clone(),
+            TileType::Stone => assets.stone.clone(),
+            TileType::FountainStoneTrees => assets.fountain_stone_trees.clone(),
+            TileType::StoneTrees => assets.stone_trees.clone(),
         }
     }
 }
