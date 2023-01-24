@@ -21,7 +21,7 @@ const NORMAL_BUTTON: Color = Color::BLACK;
 const HOVERED_BUTTON: Color = Color::rgb(0.25, 0.25, 0.25);
 const PRESSED_BUTTON: Color = Color::DARK_GREEN;
 
-#[derive(Clone, Eq, PartialEq, Copy, PartialOrd, Ord)]
+#[derive(Clone, Eq, PartialEq, Copy, PartialOrd, Ord, Debug)]
 enum TileType {
     Trees,
     Rocks,
@@ -60,6 +60,7 @@ impl TileType {
     }
 }
 
+#[derive(Debug)]
 struct Recipe {
     ingredients: [TileType; 2],
     result: TileType,
@@ -169,11 +170,15 @@ enum GameState {
 struct Recipes(Vec<Recipe>);
 
 impl Recipes {
-    fn find_by_tiles(&self, mut tiles: [Option<TileType>; 2]) -> Option<TileType> {
-        let recipe = self.0.iter().find(|r| {
-            let mut ingredients = r.ingredients;
+    fn find_by_tiles(&self, tiles: [Option<TileType>; 2]) -> Option<TileType> {
+        let item1 = tiles.get(0).unwrap().unwrap();
+        let item2 = tiles.get(1).unwrap().unwrap();
 
-            ingredients.sort() == tiles.sort()
+        let recipe = self.0.iter().find(|r| {
+            let first_item_in = r.ingredients.contains(&item1);
+            let second_item_in = r.ingredients.contains(&item2);
+
+            return first_item_in && second_item_in;
         });
 
         match recipe {
@@ -190,6 +195,21 @@ impl Default for Recipes {
         recipes.push(Recipe::new(
             [TileType::Trees, TileType::Rocks],
             TileType::TreesRocks,
+        ));
+
+        recipes.push(Recipe::new(
+            [TileType::Stone, TileType::Trees],
+            TileType::StoneTrees,
+        ));
+
+        recipes.push(Recipe::new(
+            [TileType::Rocks, TileType::TreesRocks],
+            TileType::Fountain,
+        ));
+
+        recipes.push(Recipe::new(
+            [TileType::Fountain, TileType::StoneTrees],
+            TileType::FountainStoneTrees,
         ));
 
         Recipes(recipes)
@@ -344,7 +364,7 @@ fn spawn_initial_tiles(
             TileContainer(size),
         ))
         .with_children(|parent| {
-            vec![TileType::Trees, TileType::Rocks]
+            vec![TileType::Trees, TileType::Rocks, TileType::Stone]
                 .iter()
                 .for_each(|tile| {
                     parent.spawn((
