@@ -20,7 +20,7 @@ impl Mine {
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
         transform: Transform,
-    ) {
+    ) -> Entity {
         let child_size: f32 = Mine::SIZE - Mine::BORDER_WIDTH;
 
         let inner_hexagon = MaterialMesh2dBundle {
@@ -39,7 +39,7 @@ impl Mine {
             ..default()
         };
 
-        commands
+        let id = commands
             .spawn((
                 MaterialMesh2dBundle {
                     mesh: meshes
@@ -54,7 +54,10 @@ impl Mine {
             .with_children(|parent| {
                 parent.spawn(inner_hexagon);
                 parent.spawn(inner_circle);
-            });
+            })
+            .id();
+
+        id
     }
 }
 
