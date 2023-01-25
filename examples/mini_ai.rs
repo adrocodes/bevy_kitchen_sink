@@ -11,14 +11,15 @@ struct Mine;
 
 impl Mine {
     const SIZE: f32 = 24.0;
-    const SIDES: usize = 7;
-    const BORDER_WIDTH: f32 = 3.0;
+    const SIDES: usize = 6;
+    const BORDER_WIDTH: f32 = 5.0;
     const RADII: f32 = 6.0;
 
     fn spawn(
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
+        transform: Transform,
     ) {
         let child_size: f32 = Mine::SIZE - Mine::BORDER_WIDTH;
 
@@ -45,7 +46,7 @@ impl Mine {
                         .add(shape::RegularPolygon::new(Mine::SIZE, Mine::SIDES).into())
                         .into(),
                     material: materials.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+                    transform,
                     ..default()
                 },
                 Mine,
@@ -62,8 +63,19 @@ fn spawn_initial_mines(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    Mine::spawn(&mut commands, &mut meshes, &mut materials);
-    // Mine::spawn(&commands, &meshes, &materials);
+    Mine::spawn(
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        Transform::from_xyz(0., 0., 0.),
+    );
+
+    Mine::spawn(
+        &mut commands,
+        &mut meshes,
+        &mut materials,
+        Transform::from_xyz(60., -150., 0.),
+    );
 }
 
 fn spawn_camera(mut commands: Commands) {
