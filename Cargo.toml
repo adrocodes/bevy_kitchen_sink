@@ -15,6 +15,7 @@ categories = ["games", "game-development"]
 bevy = { version = "0.9.1", features = ["dynamic"] }
 bevy_asset_loader = "0.14.1"
 bevy_mouse_position = { git = "https://github.com/adrocodes/bevy_mouse_position", branch = "main" }
+bevy_prototype_lyon = "0.7.2"
 noise = "0.8.2"
 rand = "0.8.5"
 
