@@ -15,40 +15,44 @@ impl Mine {
     const SIDES: usize = 6;
     const BORDER_WIDTH: f32 = 5.0;
     const RADII: f32 = 6.0;
+    const COLOR: Color = Color::WHITE;
 
-    fn spawn(commands: &mut Commands, transform: Transform) -> Entity {
-        let shape = shapes::RegularPolygon {
+    fn outline() -> RegularPolygon {
+        shapes::RegularPolygon {
             sides: Mine::SIDES,
             feature: shapes::RegularPolygonFeature::Radius(Mine::SIZE),
             ..default()
-        };
+        }
+    }
 
-        let id = commands
+    fn inner_circle() -> shapes::Circle {
+        shapes::Circle {
+            radius: Mine::RADII,
+            ..default()
+        }
+    }
+
+    fn spawn(commands: &mut Commands, transform: Transform) -> Entity {
+        commands
             .spawn((
                 Mine,
                 GeometryBuilder::build_as(
-                    &shape,
+                    &Mine::outline(),
                     DrawMode::Outlined {
                         fill_mode: FillMode::color(Color::NONE),
-                        outline_mode: StrokeMode::new(Color::WHITE, Mine::BORDER_WIDTH),
+                        outline_mode: StrokeMode::new(Mine::COLOR, Mine::BORDER_WIDTH),
                     },
                     transform,
                 ),
             ))
             .with_children(|parent| {
-                let circle = shapes::Circle {
-                    radius: Mine::RADII,
-                    ..default()
-                };
                 parent.spawn(GeometryBuilder::build_as(
-                    &circle,
-                    DrawMode::Fill(FillMode::color(Color::WHITE)),
+                    &Mine::inner_circle(),
+                    DrawMode::Fill(FillMode::color(Mine::COLOR)),
                     Transform::default(),
                 ));
             })
-            .id();
-
-        id
+            .id()
     }
 }
 
