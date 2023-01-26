@@ -1,4 +1,5 @@
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::prelude::*;
+use bevy_prototype_lyon::prelude::*;
 
 const WINDOW_TITLE: &str = "Mini AI";
 const WINDOW_WIDTH: f32 = 1133.0;
@@ -15,45 +16,35 @@ impl Mine {
     const BORDER_WIDTH: f32 = 5.0;
     const RADII: f32 = 6.0;
 
-    fn spawn(
-        commands: &mut Commands,
-        meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<ColorMaterial>>,
-        transform: Transform,
-    ) -> Entity {
-        let child_size: f32 = Mine::SIZE - Mine::BORDER_WIDTH;
-
-        let inner_hexagon = MaterialMesh2dBundle {
-            mesh: meshes
-                .add(shape::RegularPolygon::new(child_size, Mine::SIDES).into())
-                .into(),
-            material: materials.add(ColorMaterial::from(BACKGROUND_COLOR)),
-            transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
-            ..default()
-        };
-
-        let inner_circle = MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(Mine::RADII).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::WHITE)),
-            transform: Transform::from_translation(Vec3::new(0., 0., 2.)),
+    fn spawn(commands: &mut Commands, transform: Transform) -> Entity {
+        let shape = shapes::RegularPolygon {
+            sides: Mine::SIDES,
+            feature: shapes::RegularPolygonFeature::Radius(Mine::SIZE),
             ..default()
         };
 
         let id = commands
             .spawn((
-                MaterialMesh2dBundle {
-                    mesh: meshes
-                        .add(shape::RegularPolygon::new(Mine::SIZE, Mine::SIDES).into())
-                        .into(),
-                    material: materials.add(ColorMaterial::from(Color::WHITE)),
-                    transform,
-                    ..default()
-                },
                 Mine,
+                GeometryBuilder::build_as(
+                    &shape,
+                    DrawMode::Outlined {
+                        fill_mode: FillMode::color(Color::NONE),
+                        outline_mode: StrokeMode::new(Color::WHITE, Mine::BORDER_WIDTH),
+                    },
+                    transform,
+                ),
             ))
             .with_children(|parent| {
-                parent.spawn(inner_hexagon);
-                parent.spawn(inner_circle);
+                let circle = shapes::Circle {
+                    radius: Mine::RADII,
+                    ..default()
+                };
+                parent.spawn(GeometryBuilder::build_as(
+                    &circle,
+                    DrawMode::Fill(FillMode::color(Color::WHITE)),
+                    Transform::default(),
+                ));
             })
             .id();
 
@@ -61,28 +52,12 @@ impl Mine {
     }
 }
 
-fn spawn_initial_mines(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    Mine::spawn(
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-        Transform::from_xyz(0., 0., 0.),
-    );
-
-    Mine::spawn(
-        &mut commands,
-        &mut meshes,
-        &mut materials,
-        Transform::from_xyz(60., -150., 0.),
-    );
+fn spawn_initial_mines(mut commands: Commands) {
+    Mine::spawn(&mut commands, Transform::from_xyz(0., 0., 0.));
+    Mine::spawn(&mut commands, Transform::from_xyz(60., -150., 0.));
 }
 
 fn spawn_camera(mut commands: Commands) {
-    // Without Pan Cam
     commands.spawn(Camera2dBundle::default());
 }
 
@@ -98,6 +73,7 @@ fn main() {
             ..default()
         }))
         .insert_resource(ClearColor(BACKGROUND_COLOR))
+        .add_plugin(ShapePlugin)
         .add_startup_system(spawn_camera)
         .add_plugin(MiniAiPlugin)
         .add_system(bevy::window::close_on_esc)
