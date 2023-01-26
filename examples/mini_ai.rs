@@ -8,6 +8,11 @@ const WINDOW_HEIGHT: f32 = 744.0;
 const BACKGROUND_COLOR: Color = Color::BLACK;
 
 #[derive(Component)]
+struct MiningSpot {
+    occupied: bool,
+}
+
+#[derive(Component)]
 struct Mine;
 
 impl Mine {
@@ -15,6 +20,8 @@ impl Mine {
     const SIDES: usize = 6;
     const BORDER_WIDTH: f32 = 5.0;
     const RADII: f32 = 6.0;
+    const SPOT_RADII: f32 = 4.0;
+    const SPOT_BORDER_WIDTH: f32 = 2.0;
     const COLOR: Color = Color::WHITE;
 
     fn outline() -> RegularPolygon {
@@ -32,7 +39,14 @@ impl Mine {
         }
     }
 
-    fn spawn(commands: &mut Commands, transform: Transform) -> Entity {
+    fn mine_spot() -> shapes::Circle {
+        shapes::Circle {
+            radius: Mine::SPOT_RADII,
+            ..default()
+        }
+    }
+
+    fn spawn(commands: &mut Commands, parent_transform: Transform) -> Entity {
         commands
             .spawn((
                 Mine,
@@ -42,7 +56,7 @@ impl Mine {
                         fill_mode: FillMode::color(Color::NONE),
                         outline_mode: StrokeMode::new(Mine::COLOR, Mine::BORDER_WIDTH),
                     },
-                    transform,
+                    parent_transform,
                 ),
             ))
             .with_children(|parent| {
@@ -51,6 +65,28 @@ impl Mine {
                     DrawMode::Fill(FillMode::color(Mine::COLOR)),
                     Transform::default(),
                 ));
+
+                (0..Mine::SIDES).for_each(|index| {
+                    let mut transform = Transform::default();
+
+                    transform.translation.y += Mine::SIZE + (Mine::SPOT_RADII * 2.5);
+                    transform.rotate_around(
+                        Vec3::default(),
+                        Quat::from_rotation_z(f32::to_radians(60.0 * index as f32)),
+                    );
+
+                    parent.spawn((
+                        MiningSpot { occupied: false },
+                        GeometryBuilder::build_as(
+                            &Mine::mine_spot(),
+                            DrawMode::Outlined {
+                                fill_mode: FillMode::color(Color::NONE),
+                                outline_mode: StrokeMode::new(Color::GRAY, Mine::SPOT_BORDER_WIDTH),
+                            },
+                            transform,
+                        ),
+                    ));
+                });
             })
             .id()
     }
