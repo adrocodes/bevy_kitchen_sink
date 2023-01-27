@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
+use rand::seq::SliceRandom;
 
 const WINDOW_TITLE: &str = "Mini AI";
 const WINDOW_WIDTH: f32 = 1133.0;
@@ -115,6 +116,9 @@ impl Mine {
 #[derive(Component)]
 struct Worker;
 
+#[derive(Component)]
+struct WorkingZone(Entity);
+
 impl Worker {
     fn body() -> RegularPolygon {
         shapes::RegularPolygon {
@@ -139,6 +143,39 @@ impl Worker {
 
     fn spawn_initial_worker(mut commands: Commands) {
         Worker::spawn(&mut commands, Transform::default());
+        Worker::spawn(&mut commands, Transform::from_xyz(30., 0., 0.));
+        Worker::spawn(&mut commands, Transform::from_xyz(-30., 0., 0.));
+        Worker::spawn(&mut commands, Transform::from_xyz(60., 0., 0.));
+        Worker::spawn(&mut commands, Transform::from_xyz(-60., 0., 0.));
+    }
+
+    fn locate_mining_spot(
+        mut commands: Commands,
+        workers: Query<Entity, (Without<WorkingZone>, With<Worker>)>,
+        mut spots: Query<(Entity, &mut MiningSpot)>,
+    ) {
+        let mut filtered_spots = spots
+            .iter_mut()
+            .filter(|(_, spot)| !spot.occupied)
+            .collect::<Vec<_>>();
+
+        if filtered_spots.len() == 0 {
+            return;
+        }
+
+        filtered_spots.shuffle(&mut rand::thread_rng());
+
+        for worker_id in workers.iter() {
+            let chosen_spot = filtered_spots.pop();
+
+            match chosen_spot {
+                Some((spot_id, mut spot)) => {
+                    spot.occupied = true;
+                    commands.entity(worker_id).insert(WorkingZone(spot_id));
+                }
+                None => println!("Invalid Spot"),
+            }
+        }
     }
 }
 
@@ -171,6 +208,7 @@ impl Plugin for MiniAiPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(Mine::spawn_initial_mines)
             .add_system(Mine::debug_occupied_status)
-            .add_startup_system(Worker::spawn_initial_worker);
+            .add_startup_system(Worker::spawn_initial_worker)
+            .add_system(Worker::locate_mining_spot);
     }
 }
