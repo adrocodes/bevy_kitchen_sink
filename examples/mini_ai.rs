@@ -95,6 +95,21 @@ impl Mine {
         Mine::spawn(&mut commands, Transform::from_xyz(-60., -150., 0.));
         Mine::spawn(&mut commands, Transform::from_xyz(60., -150., 0.));
     }
+
+    fn debug_occupied_status(mut query: Query<(&mut DrawMode, &MiningSpot)>) {
+        for (mut mode, spot) in query.iter_mut() {
+            if let DrawMode::Outlined {
+                fill_mode: _,
+                ref mut outline_mode,
+            } = *mode
+            {
+                outline_mode.color = match spot.occupied {
+                    true => Color::GREEN,
+                    false => Color::RED,
+                };
+            }
+        }
+    }
 }
 
 #[derive(Component)]
@@ -155,6 +170,7 @@ struct MiniAiPlugin;
 impl Plugin for MiniAiPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(Mine::spawn_initial_mines)
+            .add_system(Mine::debug_occupied_status)
             .add_startup_system(Worker::spawn_initial_worker);
     }
 }
