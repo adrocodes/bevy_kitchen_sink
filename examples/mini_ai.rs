@@ -90,11 +90,41 @@ impl Mine {
             })
             .id()
     }
+
+    fn spawn_initial_mines(mut commands: Commands) {
+        Mine::spawn(&mut commands, Transform::from_xyz(-60., -150., 0.));
+        Mine::spawn(&mut commands, Transform::from_xyz(60., -150., 0.));
+    }
 }
 
-fn spawn_initial_mines(mut commands: Commands) {
-    Mine::spawn(&mut commands, Transform::from_xyz(0., 0., 0.));
-    Mine::spawn(&mut commands, Transform::from_xyz(60., -150., 0.));
+#[derive(Component)]
+struct Worker;
+
+impl Worker {
+    fn body() -> RegularPolygon {
+        shapes::RegularPolygon {
+            sides: 5,
+            feature: shapes::RegularPolygonFeature::Radius(10.0),
+            ..default()
+        }
+    }
+
+    fn spawn(commands: &mut Commands, transform: Transform) -> Entity {
+        commands
+            .spawn((
+                Worker,
+                GeometryBuilder::build_as(
+                    &Worker::body(),
+                    DrawMode::Fill(FillMode::color(Color::BEIGE)),
+                    transform,
+                ),
+            ))
+            .id()
+    }
+
+    fn spawn_initial_worker(mut commands: Commands) {
+        Worker::spawn(&mut commands, Transform::default());
+    }
 }
 
 fn spawn_camera(mut commands: Commands) {
@@ -124,6 +154,7 @@ struct MiniAiPlugin;
 
 impl Plugin for MiniAiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_initial_mines);
+        app.add_startup_system(Mine::spawn_initial_mines)
+            .add_startup_system(Worker::spawn_initial_worker);
     }
 }
