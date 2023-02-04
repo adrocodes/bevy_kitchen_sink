@@ -39,3 +39,7 @@ Generates a square of tiles that are randomly assigned a tile based on a random 
 ### Examples - Perlin Squares
 
 A copy of **Random Squares** but the `rand` package has been replaced with `noise` to generate the square using Perlin Noise.
+
+### Examples - Doodle Demigod
+
+A minimal clone of the game "Doodle God", where instead of combining elements to make new things, you combine land tiles to unlock decorations. There are 7 tiles to unlock.
