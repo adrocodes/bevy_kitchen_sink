@@ -28,14 +28,17 @@ fn main() {
 }
 
 struct Tile {
-    name: &str,
+    name: String,
     /// CSS Margin Rules -> Top, Right, Bottom, Left
     edges: [bool; 4],
 }
 
 impl Tile {
     fn new(edges: [bool; 4], name: &str) -> Self {
-        Tile { edges, name }
+        Tile {
+            edges,
+            name: name.to_owned(),
+        }
     }
 }
 
@@ -83,4 +86,43 @@ fn gen_tile_list() -> Vec<Tile> {
         tee_t,
         empty,
     ]
+}
+
+struct WaveCollapse {
+    rows: usize,
+    cols: usize,
+    grid: Vec<Vec<Vec<Tile>>>,
+}
+
+struct Pos {
+    row: usize,
+    col: usize,
+}
+
+impl WaveCollapse {
+    fn new(rows: usize, cols: usize) -> Self {
+        let grid: Vec<Vec<Vec<Tile>>> = (0..rows)
+            .map(|_| (0..cols).map(|_| gen_tile_list()).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
+
+        Self { rows, cols, grid }
+    }
+
+    fn collapse(&self, at: Pos) {
+        if self.grid_is_collapsed() {
+            return;
+        }
+
+        todo!();
+    }
+
+    fn propogate(&self, from: Pos, from_tile: Tile) {
+        todo!();
+    }
+
+    fn grid_is_collapsed(&self) -> bool {
+        self.grid
+            .iter()
+            .all(|row| row.iter().all(|col| col.len() == 1))
+    }
 }
