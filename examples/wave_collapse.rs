@@ -59,6 +59,7 @@ fn gen_tile_list() -> Vec<Tile> {
     let tee_l = Tile::new([true, true, true, false], "tee_l");
     let tee_r = Tile::new([true, false, true, true], "tee_r");
     let tee_t = Tile::new([false, true, true, true], "tee_t");
+    let empty = Tile::new([false, false, false, false], "empty");
 
     vec![
         cross,
@@ -80,5 +81,6 @@ fn gen_tile_list() -> Vec<Tile> {
         tee_l,
         tee_r,
         tee_t,
+        empty,
     ]
 }
