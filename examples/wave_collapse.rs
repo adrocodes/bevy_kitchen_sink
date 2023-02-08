@@ -126,3 +126,26 @@ impl WaveCollapse {
             .all(|row| row.iter().all(|col| col.len() == 1))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn grid_is_not_collapsed() {
+        let wave = WaveCollapse::new(1, 1);
+        assert_eq!(false, wave.grid_is_collapsed());
+    }
+
+    #[test]
+    fn grid_is_collapsed() {
+        let grid: Vec<Vec<Vec<Tile>>> = Vec::new();
+        let wave = WaveCollapse {
+            rows: 0,
+            cols: 0,
+            grid,
+        };
+
+        assert_eq!(true, wave.grid_is_collapsed());
+    }
+}
