@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use rand::seq::SliceRandom;
 
 const WINDOW_TITLE: &str = "Wave Collapse";
 const WINDOW_WIDTH: f32 = 1133.0;
@@ -27,8 +28,9 @@ fn main() {
         .run();
 }
 
+#[derive(Clone, Copy)]
 struct Tile {
-    name: String,
+    // name: String,
     /// CSS Margin Rules -> Top, Right, Bottom, Left
     edges: [bool; 4],
 }
@@ -37,7 +39,14 @@ impl Tile {
     fn new(edges: [bool; 4], name: &str) -> Self {
         Tile {
             edges,
-            name: name.to_owned(),
+            // name: name.to_owned(),
+        }
+    }
+
+    fn copy(&self) -> Self {
+        Self {
+            edges: self.edges,
+            // name: self.name,
         }
     }
 }
@@ -92,6 +101,7 @@ struct WaveCollapse {
     rows: usize,
     cols: usize,
     grid: Vec<Vec<Vec<Tile>>>,
+    collapsed_grid: Vec<Vec<Option<Tile>>>,
 }
 
 struct Pos {
@@ -105,25 +115,46 @@ impl WaveCollapse {
             .map(|_| (0..cols).map(|_| gen_tile_list()).collect::<Vec<_>>())
             .collect::<Vec<_>>();
 
-        Self { rows, cols, grid }
+        let collapsed_grid: Vec<Vec<Option<Tile>>> = (0..rows)
+            .map(|_| (0..cols).map(|_| None).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
+
+        Self {
+            rows,
+            cols,
+            grid,
+            collapsed_grid,
+        }
     }
 
-    fn collapse(&self, at: Pos) {
+    fn get_cell(&mut self, at: &Pos) -> &mut Vec<Tile> {
+        &mut self.grid[at.row][at.col]
+    }
+
+    fn collapse_cell(&mut self, at: &Pos) {
+        let cell = self.get_cell(&at);
+        let chosen_tile = cell.choose(&mut rand::thread_rng()).unwrap();
+
+        self.collapsed_grid[at.row][at.col] = Some(*chosen_tile);
+    }
+
+    fn collapse(&mut self, at: Pos) {
         if self.grid_is_collapsed() {
             return;
         }
 
-        todo!();
+        self.collapse_cell(&at);
+        self.propogate(&at);
     }
 
-    fn propogate(&self, from: Pos, from_tile: Tile) {
+    fn propogate(&mut self, from: &Pos) {
         todo!();
     }
 
     fn grid_is_collapsed(&self) -> bool {
-        self.grid
+        self.collapsed_grid
             .iter()
-            .all(|row| row.iter().all(|col| col.len() == 1))
+            .all(|row| row.iter().all(|col| col.is_some()))
     }
 }
 
@@ -144,8 +175,26 @@ mod tests {
             rows: 0,
             cols: 0,
             grid,
+            collapsed_grid: Vec::new(),
         };
 
         assert_eq!(true, wave.grid_is_collapsed());
+    }
+
+    #[test]
+    fn get_cell() {
+        let mut wave = WaveCollapse::new(1, 1);
+        let cell = wave.get_cell(&Pos { row: 0, col: 0 });
+        assert_eq!(true, cell.len() > 0);
+    }
+
+    #[test]
+    fn collapse_cell() {
+        let mut wave = WaveCollapse::new(1, 1);
+        let pos = Pos { row: 0, col: 0 };
+        wave.collapse_cell(&pos);
+        let cell = wave.collapsed_grid[pos.row][pos.col];
+
+        assert_eq!(true, cell.is_some());
     }
 }
