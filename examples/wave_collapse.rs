@@ -131,6 +131,10 @@ impl WaveCollapse {
         &mut self.grid[at.row][at.col]
     }
 
+    fn get_collapsed_cell(&self, at: &Pos) -> Option<Tile> {
+        self.collapsed_grid[at.row][at.col]
+    }
+
     fn collapse_cell(&mut self, at: &Pos) {
         let cell = self.get_cell(&at);
         let chosen_tile = cell.choose(&mut rand::thread_rng()).unwrap();
@@ -186,6 +190,13 @@ mod tests {
         let mut wave = WaveCollapse::new(1, 1);
         let cell = wave.get_cell(&Pos { row: 0, col: 0 });
         assert_eq!(true, cell.len() > 0);
+    }
+
+    #[test]
+    fn get_collapsed_cell() {
+        let wave = WaveCollapse::new(1, 1);
+        let cell = wave.get_collapsed_cell(&Pos { row: 0, col: 0 });
+        assert!(cell.is_none());
     }
 
     #[test]
