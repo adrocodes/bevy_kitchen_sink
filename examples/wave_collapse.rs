@@ -104,9 +104,17 @@ struct WaveCollapse {
     collapsed_grid: Vec<Vec<Option<Tile>>>,
 }
 
+#[derive(Clone, Copy)]
 struct Pos {
     row: usize,
     col: usize,
+}
+
+enum OffsetType {
+    Top,
+    Right,
+    Bottom,
+    Left,
 }
 
 impl WaveCollapse {
@@ -131,6 +139,51 @@ impl WaveCollapse {
         &mut self.grid[at.row][at.col]
     }
 
+    fn get_offset_cell(&mut self, at: &Pos, direction: OffsetType) -> Option<&mut Vec<Tile>> {
+        match direction {
+            OffsetType::Top => {
+                if at.row == 0 {
+                    return None;
+                }
+
+                Some(self.get_cell(&Pos {
+                    row: at.row - 1,
+                    col: at.col,
+                }))
+            }
+            OffsetType::Right => {
+                if at.col >= self.cols - 1 {
+                    return None;
+                }
+
+                Some(self.get_cell(&Pos {
+                    row: at.row,
+                    col: at.col + 1,
+                }))
+            }
+            OffsetType::Bottom => {
+                if at.row >= self.rows - 1 {
+                    return None;
+                }
+
+                Some(self.get_cell(&Pos {
+                    row: at.row + 1,
+                    col: at.col,
+                }))
+            }
+            OffsetType::Left => {
+                if at.col == 0 {
+                    return None;
+                }
+
+                Some(self.get_cell(&Pos {
+                    row: at.row,
+                    col: at.col - 1,
+                }))
+            }
+        }
+    }
+
     fn get_collapsed_cell(&self, at: &Pos) -> Option<Tile> {
         self.collapsed_grid[at.row][at.col]
     }
@@ -152,7 +205,14 @@ impl WaveCollapse {
     }
 
     fn propogate(&mut self, from: &Pos) {
-        todo!();
+        let tile = self.get_collapsed_cell(&from);
+
+        if let Some(tile) = tile {
+            let top_tile = self.get_offset_cell(&from, OffsetType::Top);
+            let right_tile = self.get_offset_cell(&from, OffsetType::Right);
+            let bottom_tile = self.get_offset_cell(&from, OffsetType::Bottom);
+            let left_tile = self.get_offset_cell(&from, OffsetType::Left);
+        }
     }
 
     fn grid_is_collapsed(&self) -> bool {
@@ -197,6 +257,29 @@ mod tests {
         let wave = WaveCollapse::new(1, 1);
         let cell = wave.get_collapsed_cell(&Pos { row: 0, col: 0 });
         assert!(cell.is_none());
+    }
+
+    #[test]
+    fn get_offset_cell() {
+        let mut wave = WaveCollapse::new(2, 2);
+        // row < 0 - can't run because usize
+        let cell = wave.get_offset_cell(&Pos { row: 0, col: 0 }, OffsetType::Top);
+        assert!(cell.is_none());
+        // col < 0 - can't run because usize
+        let cell = wave.get_offset_cell(&Pos { row: 0, col: 0 }, OffsetType::Left);
+        assert!(cell.is_none());
+        // row >= rows
+        let cell = wave.get_offset_cell(&Pos { row: 1, col: 0 }, OffsetType::Bottom);
+        assert!(cell.is_none());
+        // col >= cols
+        let cell = wave.get_offset_cell(&Pos { row: 0, col: 1 }, OffsetType::Right);
+        assert!(cell.is_none());
+
+        // valid
+        let cell = wave.get_offset_cell(&Pos { row: 0, col: 0 }, OffsetType::Right);
+        assert!(cell.is_some());
+        let cell = wave.get_offset_cell(&Pos { row: 0, col: 0 }, OffsetType::Right);
+        assert!(cell.is_some());
     }
 
     #[test]
