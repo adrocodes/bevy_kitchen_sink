@@ -42,13 +42,6 @@ impl Tile {
             // name: name.to_owned(),
         }
     }
-
-    fn copy(&self) -> Self {
-        Self {
-            edges: self.edges,
-            // name: self.name,
-        }
-    }
 }
 
 fn gen_tile_list() -> Vec<Tile> {
@@ -208,12 +201,12 @@ impl WaveCollapse {
         self.propogate(&at, OffsetType::Left);
     }
 
-    fn get_index_pairs(direction: OffsetType) -> [usize; 2] {
+    fn get_index_pairs(direction: OffsetType) -> (usize, usize) {
         match direction {
-            OffsetType::Top => [0, 2],
-            OffsetType::Right => [1, 3],
-            OffsetType::Bottom => [2, 0],
-            OffsetType::Left => [3, 1],
+            OffsetType::Top => (0, 2),
+            OffsetType::Right => (1, 3),
+            OffsetType::Bottom => (2, 0),
+            OffsetType::Left => (3, 1),
         }
     }
 
@@ -225,7 +218,7 @@ impl WaveCollapse {
             let indexes = WaveCollapse::get_index_pairs(direction);
 
             if let Some(offset_tile) = offset_tile {
-                offset_tile.retain(|t| t[indexes.get(1)] == t[indexes.get(0)]);
+                offset_tile.retain(|t| t.edges[indexes.1] == tile.edges[indexes.0]);
             }
         }
     }
@@ -305,5 +298,16 @@ mod tests {
         let cell = wave.collapsed_grid[pos.row][pos.col];
 
         assert_eq!(true, cell.is_some());
+    }
+
+    #[test]
+    fn test_propogate() {
+        let mut wave = WaveCollapse::new(5, 5);
+        let pos = Pos { row: 1, col: 1 };
+        wave.collapse_cell(&pos);
+        wave.propogate(&pos, OffsetType::Top);
+        let top_tile = wave.get_offset_cell(&pos, OffsetType::Top);
+
+        assert_eq!(10, top_tile.unwrap().len());
     }
 }
