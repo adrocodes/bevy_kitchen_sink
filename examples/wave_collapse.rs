@@ -134,48 +134,50 @@ impl WaveCollapse {
     }
 
     fn get_offset_cell(&mut self, at: &Pos, direction: OffsetType) -> Option<&mut Vec<Tile>> {
-        match direction {
+        let pos = match direction {
             OffsetType::Top => {
                 if at.row == 0 {
                     return None;
                 }
 
-                Some(self.get_cell(&Pos {
+                Pos {
                     row: at.row - 1,
                     col: at.col,
-                }))
+                }
             }
             OffsetType::Right => {
                 if at.col >= self.cols - 1 {
                     return None;
                 }
 
-                Some(self.get_cell(&Pos {
+                Pos {
                     row: at.row,
                     col: at.col + 1,
-                }))
+                }
             }
             OffsetType::Bottom => {
                 if at.row >= self.rows - 1 {
                     return None;
                 }
 
-                Some(self.get_cell(&Pos {
+                Pos {
                     row: at.row + 1,
                     col: at.col,
-                }))
+                }
             }
             OffsetType::Left => {
                 if at.col == 0 {
                     return None;
                 }
 
-                Some(self.get_cell(&Pos {
+                Pos {
                     row: at.row,
                     col: at.col - 1,
-                }))
+                }
             }
-        }
+        };
+
+        Some(self.get_cell(&pos))
     }
 
     fn get_collapsed_cell(&self, at: &Pos) -> Option<Tile> {
