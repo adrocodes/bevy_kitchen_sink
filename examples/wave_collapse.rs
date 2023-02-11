@@ -110,6 +110,7 @@ struct Pos {
     col: usize,
 }
 
+#[derive(Clone, Copy)]
 enum OffsetType {
     Top,
     Right,
@@ -201,17 +202,31 @@ impl WaveCollapse {
         }
 
         self.collapse_cell(&at);
-        self.propogate(&at);
+        self.propogate(&at, OffsetType::Top);
+        self.propogate(&at, OffsetType::Right);
+        self.propogate(&at, OffsetType::Bottom);
+        self.propogate(&at, OffsetType::Left);
     }
 
-    fn propogate(&mut self, from: &Pos) {
+    fn get_index_pairs(direction: OffsetType) -> [usize; 2] {
+        match direction {
+            OffsetType::Top => [0, 2],
+            OffsetType::Right => [1, 3],
+            OffsetType::Bottom => [2, 0],
+            OffsetType::Left => [3, 1],
+        }
+    }
+
+    fn propogate(&mut self, from: &Pos, direction: OffsetType) {
         let tile = self.get_collapsed_cell(&from);
 
         if let Some(tile) = tile {
-            let top_tile = self.get_offset_cell(&from, OffsetType::Top);
-            let right_tile = self.get_offset_cell(&from, OffsetType::Right);
-            let bottom_tile = self.get_offset_cell(&from, OffsetType::Bottom);
-            let left_tile = self.get_offset_cell(&from, OffsetType::Left);
+            let offset_tile = self.get_offset_cell(&from, direction);
+            let indexes = WaveCollapse::get_index_pairs(direction);
+
+            if let Some(offset_tile) = offset_tile {
+                offset_tile.retain(|t| t[indexes.get(1)] == t[indexes.get(0)]);
+            }
         }
     }
 
