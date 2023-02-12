@@ -28,43 +28,64 @@ fn main() {
         .run();
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum TileType {
+    Cross,
+    CurveBlc,
+    CurveBrc,
+    CurveTlc,
+    CurveTrc,
+    EndT,
+    EndR,
+    EndL,
+    EndB,
+    LeftToRight,
+    TopToBottom,
+    StraightBlc,
+    StraightBrc,
+    StraightTlc,
+    StraightTrc,
+    TeeB,
+    TeeL,
+    TeeR,
+    TeeT,
+    Empty,
+}
+
 #[derive(Clone, Copy)]
 struct Tile {
-    // name: String,
+    of_type: TileType,
     /// CSS Margin Rules -> Top, Right, Bottom, Left
     edges: [bool; 4],
 }
 
 impl Tile {
-    fn new(edges: [bool; 4], name: &str) -> Self {
-        Tile {
-            edges,
-            // name: name.to_owned(),
-        }
+    fn new(edges: [bool; 4], of_type: TileType) -> Self {
+        Tile { edges, of_type }
     }
 }
 
 fn gen_tile_list() -> Vec<Tile> {
-    let cross = Tile::new([true, true, true, true], "cross");
-    let curve_blc = Tile::new([true, true, false, false], "curve_blc");
-    let curve_brc = Tile::new([true, false, false, true], "curve_brc");
-    let curve_tlc = Tile::new([false, true, true, false], "curve_tlc");
-    let curve_trc = Tile::new([false, false, true, true], "curve_trc");
-    let end_t = Tile::new([true, false, false, false], "end_t");
-    let end_r = Tile::new([false, true, false, false], "end_r");
-    let end_l = Tile::new([false, false, false, true], "end_l");
-    let end_b = Tile::new([false, false, true, false], "end_b");
-    let l_to_r = Tile::new([false, true, false, true], "l_to_r");
-    let straight_blc = Tile::new([true, true, false, false], "straight_blc");
-    let straight_brc = Tile::new([true, false, false, true], "straight_brc");
-    let straight_tlc = Tile::new([false, true, true, false], "straight_tlc");
-    let straight_trc = Tile::new([false, false, true, true], "straight_trc");
-    let t_to_b = Tile::new([true, false, true, false], "t_to_b");
-    let tee_b = Tile::new([true, true, false, true], "tee_b");
-    let tee_l = Tile::new([true, true, true, false], "tee_l");
-    let tee_r = Tile::new([true, false, true, true], "tee_r");
-    let tee_t = Tile::new([false, true, true, true], "tee_t");
-    let empty = Tile::new([false, false, false, false], "empty");
+    let cross = Tile::new([true, true, true, true], TileType::Cross);
+    let curve_blc = Tile::new([true, true, false, false], TileType::CurveBlc);
+    let curve_brc = Tile::new([true, false, false, true], TileType::CurveBrc);
+    let curve_tlc = Tile::new([false, true, true, false], TileType::CurveTlc);
+    let curve_trc = Tile::new([false, false, true, true], TileType::CurveTrc);
+    let end_t = Tile::new([true, false, false, false], TileType::EndT);
+    let end_r = Tile::new([false, true, false, false], TileType::EndR);
+    let end_l = Tile::new([false, false, false, true], TileType::EndL);
+    let end_b = Tile::new([false, false, true, false], TileType::EndB);
+    let l_to_r = Tile::new([false, true, false, true], TileType::LeftToRight);
+    let straight_blc = Tile::new([true, true, false, false], TileType::StraightBlc);
+    let straight_brc = Tile::new([true, false, false, true], TileType::StraightBrc);
+    let straight_tlc = Tile::new([false, true, true, false], TileType::StraightTlc);
+    let straight_trc = Tile::new([false, false, true, true], TileType::StraightTrc);
+    let t_to_b = Tile::new([true, false, true, false], TileType::TopToBottom);
+    let tee_b = Tile::new([true, true, false, true], TileType::TeeB);
+    let tee_l = Tile::new([true, true, true, false], TileType::TeeL);
+    let tee_r = Tile::new([true, false, true, true], TileType::TeeR);
+    let tee_t = Tile::new([false, true, true, true], TileType::TeeT);
+    let empty = Tile::new([false, false, false, false], TileType::Empty);
 
     vec![
         cross,
