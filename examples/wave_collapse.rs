@@ -52,7 +52,7 @@ enum TileType {
     Empty,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct Tile {
     of_type: TileType,
     /// CSS Margin Rules -> Top, Right, Bottom, Left
@@ -111,6 +111,7 @@ fn gen_tile_list() -> Vec<Tile> {
     ]
 }
 
+#[derive(Debug)]
 struct WaveCollapse {
     rows: usize,
     cols: usize,
@@ -118,7 +119,7 @@ struct WaveCollapse {
     collapsed_grid: Vec<Vec<Option<Tile>>>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct Pos {
     row: usize,
     col: usize,
@@ -207,9 +208,11 @@ impl WaveCollapse {
 
     fn collapse_cell(&mut self, at: &Pos) {
         let cell = self.get_cell(&at);
-        let chosen_tile = cell.choose(&mut rand::thread_rng()).unwrap();
+        let chosen_tile = cell.choose(&mut rand::thread_rng());
 
-        self.collapsed_grid[at.row][at.col] = Some(*chosen_tile);
+        if let Some(chosen_tile) = chosen_tile {
+            self.collapsed_grid[at.row][at.col] = Some(*chosen_tile);
+        }
     }
 
     fn get_next_lowest_tile(&self) -> Pos {
@@ -218,7 +221,7 @@ impl WaveCollapse {
 
         for (i, row) in self.grid.iter().enumerate() {
             for (j, col) in row.iter().enumerate() {
-                if col.len() < count {
+                if col.len() < count && self.collapsed_grid[i][j].is_none() {
                     count = col.len();
                     pos = Pos { row: i, col: j };
                 }
@@ -238,6 +241,9 @@ impl WaveCollapse {
         self.propogate(&at, OffsetType::Right);
         self.propogate(&at, OffsetType::Bottom);
         self.propogate(&at, OffsetType::Left);
+
+        let next_at = self.get_next_lowest_tile();
+        self.collapse(next_at);
     }
 
     fn get_index_pairs(direction: OffsetType) -> (usize, usize) {
@@ -360,5 +366,13 @@ mod tests {
         let next_pos = wave.get_next_lowest_tile();
         assert_eq!(0, next_pos.row);
         assert_eq!(1, next_pos.col);
+    }
+
+    #[test]
+    fn test_collapse() {
+        let mut wave = WaveCollapse::new(5, 5);
+        wave.collapse(Pos { row: 0, col: 0 });
+
+        assert!(wave.grid_is_collapsed());
     }
 }
