@@ -212,6 +212,22 @@ impl WaveCollapse {
         self.collapsed_grid[at.row][at.col] = Some(*chosen_tile);
     }
 
+    fn get_next_lowest_tile(&self) -> Pos {
+        let mut pos = Pos { row: 0, col: 0 };
+        let mut count = usize::MAX;
+
+        for (i, row) in self.grid.iter().enumerate() {
+            for (j, col) in row.iter().enumerate() {
+                if col.len() < count {
+                    count = col.len();
+                    pos = Pos { row: i, col: j };
+                }
+            }
+        }
+
+        pos
+    }
+
     fn collapse(&mut self, at: Pos) {
         if self.grid_is_collapsed() {
             return;
@@ -332,5 +348,17 @@ mod tests {
         let top_tile = wave.get_offset_cell(&pos, OffsetType::Top);
 
         assert_eq!(10, top_tile.unwrap().len());
+    }
+
+    #[test]
+    fn test_next_lowest_tile() {
+        let mut wave = WaveCollapse::new(5, 5);
+        let pos = Pos { row: 1, col: 1 };
+        wave.collapse_cell(&pos);
+        wave.propogate(&pos, OffsetType::Top);
+
+        let next_pos = wave.get_next_lowest_tile();
+        assert_eq!(0, next_pos.row);
+        assert_eq!(1, next_pos.col);
     }
 }
