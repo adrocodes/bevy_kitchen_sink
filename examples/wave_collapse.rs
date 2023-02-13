@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_asset_loader::prelude::*;
 use rand::seq::SliceRandom;
 
 const WINDOW_TITLE: &str = "Wave Collapse";
@@ -24,6 +25,7 @@ fn main() {
         }))
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(spawn_camera)
+        .add_plugin(WaveCollapseGamePlugin)
         .add_system(bevy::window::close_on_esc)
         .run();
 }
@@ -374,5 +376,32 @@ mod tests {
         wave.collapse(Pos { row: 0, col: 0 });
 
         assert!(wave.grid_is_collapsed());
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+enum GameState {
+    AssetLoading,
+    Playing,
+}
+
+#[derive(AssetCollection, Resource)]
+struct TileAssets {
+    #[asset(path = "wave_collapse/cross.png")]
+    cross: Handle<Image>,
+}
+
+struct WaveCollapseGamePlugin;
+
+impl Plugin for WaveCollapseGamePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_loading_state(
+            LoadingState::new(GameState::AssetLoading)
+                .continue_to_state(GameState::Playing)
+                .with_collection::<TileAssets>(),
+        )
+        .add_state(GameState::AssetLoading)
+        .add_system_set(SystemSet::on_enter(GameState::Playing))
+        .add_system_set(SystemSet::on_update(GameState::Playing));
     }
 }
