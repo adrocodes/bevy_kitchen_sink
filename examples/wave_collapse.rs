@@ -54,6 +54,33 @@ enum TileType {
     Empty,
 }
 
+impl TileType {
+    fn asset(&self, assets: &TileAssets) -> Option<Handle<Image>> {
+        match self {
+            TileType::Cross => Some(assets.cross.clone()),
+            TileType::CurveBlc => Some(assets.curve_blc.clone()),
+            TileType::CurveBrc => Some(assets.curve_brc.clone()),
+            TileType::CurveTlc => Some(assets.curve_tlc.clone()),
+            TileType::CurveTrc => Some(assets.curve_trc.clone()),
+            TileType::EndT => Some(assets.end_t.clone()),
+            TileType::EndR => Some(assets.end_r.clone()),
+            TileType::EndL => Some(assets.end_l.clone()),
+            TileType::EndB => Some(assets.end_b.clone()),
+            TileType::LeftToRight => Some(assets.l_to_r.clone()),
+            TileType::TopToBottom => Some(assets.t_to_b.clone()),
+            TileType::StraightBlc => Some(assets.straight_blc.clone()),
+            TileType::StraightBrc => Some(assets.straight_brc.clone()),
+            TileType::StraightTlc => Some(assets.straight_tlc.clone()),
+            TileType::StraightTrc => Some(assets.straight_trc.clone()),
+            TileType::TeeB => Some(assets.tee_b.clone()),
+            TileType::TeeL => Some(assets.tee_l.clone()),
+            TileType::TeeR => Some(assets.tee_r.clone()),
+            TileType::TeeT => Some(assets.tee_t.clone()),
+            TileType::Empty => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct Tile {
     of_type: TileType,
