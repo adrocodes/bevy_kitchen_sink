@@ -104,10 +104,10 @@ fn gen_tile_list() -> Vec<Tile> {
     let curve_brc = Tile::new([true, false, false, true], TileType::CurveBrc);
     let curve_tlc = Tile::new([false, true, true, false], TileType::CurveTlc);
     let curve_trc = Tile::new([false, false, true, true], TileType::CurveTrc);
-    let end_t = Tile::new([true, false, false, false], TileType::EndT);
+    let end_t = Tile::new([false, false, true, false], TileType::EndT);
     let end_r = Tile::new([false, true, false, false], TileType::EndR);
     let end_l = Tile::new([false, false, false, true], TileType::EndL);
-    let end_b = Tile::new([false, false, true, false], TileType::EndB);
+    let end_b = Tile::new([true, false, false, false], TileType::EndB);
     let l_to_r = Tile::new([false, true, false, true], TileType::LeftToRight);
     let straight_blc = Tile::new([true, true, false, false], TileType::StraightBlc);
     let straight_brc = Tile::new([true, false, false, true], TileType::StraightBrc);
@@ -115,8 +115,8 @@ fn gen_tile_list() -> Vec<Tile> {
     let straight_trc = Tile::new([false, false, true, true], TileType::StraightTrc);
     let t_to_b = Tile::new([true, false, true, false], TileType::TopToBottom);
     let tee_b = Tile::new([true, true, false, true], TileType::TeeB);
-    let tee_l = Tile::new([true, true, true, false], TileType::TeeL);
-    let tee_r = Tile::new([true, false, true, true], TileType::TeeR);
+    let tee_l = Tile::new([true, false, true, true], TileType::TeeL);
+    let tee_r = Tile::new([true, true, true, false], TileType::TeeR);
     let tee_t = Tile::new([false, true, true, true], TileType::TeeT);
     let empty = Tile::new([false, false, false, false], TileType::Empty);
 
