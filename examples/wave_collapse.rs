@@ -389,6 +389,42 @@ enum GameState {
 struct TileAssets {
     #[asset(path = "wave_collapse/cross.png")]
     cross: Handle<Image>,
+    #[asset(path = "wave_collapse/curve_blc.png")]
+    curve_blc: Handle<Image>,
+    #[asset(path = "wave_collapse/curve_brc.png")]
+    curve_brc: Handle<Image>,
+    #[asset(path = "wave_collapse/curve_tlc.png")]
+    curve_tlc: Handle<Image>,
+    #[asset(path = "wave_collapse/curve_trc.png")]
+    curve_trc: Handle<Image>,
+    #[asset(path = "wave_collapse/end_b.png")]
+    end_b: Handle<Image>,
+    #[asset(path = "wave_collapse/end_l.png")]
+    end_l: Handle<Image>,
+    #[asset(path = "wave_collapse/end_r.png")]
+    end_r: Handle<Image>,
+    #[asset(path = "wave_collapse/end_t.png")]
+    end_t: Handle<Image>,
+    #[asset(path = "wave_collapse/l_to_r.png")]
+    l_to_r: Handle<Image>,
+    #[asset(path = "wave_collapse/straight_blc.png")]
+    straight_blc: Handle<Image>,
+    #[asset(path = "wave_collapse/straight_brc.png")]
+    straight_brc: Handle<Image>,
+    #[asset(path = "wave_collapse/straight_tlc.png")]
+    straight_tlc: Handle<Image>,
+    #[asset(path = "wave_collapse/straight_trc.png")]
+    straight_trc: Handle<Image>,
+    #[asset(path = "wave_collapse/t_to_b.png")]
+    t_to_b: Handle<Image>,
+    #[asset(path = "wave_collapse/tee_b.png")]
+    tee_b: Handle<Image>,
+    #[asset(path = "wave_collapse/tee_l.png")]
+    tee_l: Handle<Image>,
+    #[asset(path = "wave_collapse/tee_r.png")]
+    tee_r: Handle<Image>,
+    #[asset(path = "wave_collapse/tee_t.png")]
+    tee_t: Handle<Image>,
 }
 
 struct WaveCollapseGamePlugin;
