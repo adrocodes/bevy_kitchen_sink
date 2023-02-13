@@ -6,6 +6,10 @@ const WINDOW_TITLE: &str = "Wave Collapse";
 const WINDOW_WIDTH: f32 = 1133.0;
 const WINDOW_HEIGHT: f32 = 744.0;
 
+const TILE_COUNT: usize = 20;
+const TILE_SIZE: f32 = 64.0;
+const TILE_OFFSET: f32 = (TILE_SIZE * (TILE_COUNT / 2) as f32) - (TILE_SIZE / 2.0);
+
 const BACKGROUND_COLOR: Color = Color::BEIGE;
 
 fn spawn_camera(mut commands: Commands) {
@@ -81,7 +85,7 @@ impl TileType {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Component)]
 struct Tile {
     of_type: TileType,
     /// CSS Margin Rules -> Top, Right, Bottom, Left
@@ -464,7 +468,38 @@ impl Plugin for WaveCollapseGamePlugin {
                 .with_collection::<TileAssets>(),
         )
         .add_state(GameState::AssetLoading)
-        .add_system_set(SystemSet::on_enter(GameState::Playing))
+        .add_system_set(SystemSet::on_enter(GameState::Playing).with_system(spawn_grid_map))
         .add_system_set(SystemSet::on_update(GameState::Playing));
+    }
+}
+
+fn spawn_grid_map(mut commands: Commands, assets: Res<TileAssets>) {
+    let mut wave = WaveCollapse::new(TILE_COUNT, TILE_COUNT);
+    wave.collapse(Pos { row: 0, col: 0 });
+    let grid = wave.collapsed_grid;
+
+    for (i, row) in grid.iter().enumerate() {
+        for (j, col) in row.iter().enumerate() {
+            if let Some(tile) = col {
+                let mut sprite_bundle = SpriteBundle {
+                    transform: Transform::from_xyz(
+                        TILE_SIZE * i as f32 - TILE_OFFSET,
+                        TILE_SIZE * j as f32 - TILE_OFFSET,
+                        0.0,
+                    ),
+                    ..default()
+                };
+                let asset = tile.of_type.asset(&assets);
+
+                match asset {
+                    Some(texture) => {
+                        sprite_bundle.texture = texture;
+                    }
+                    None => {}
+                };
+
+                commands.spawn((*tile, sprite_bundle));
+            }
+        }
     }
 }
