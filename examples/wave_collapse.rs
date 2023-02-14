@@ -90,11 +90,22 @@ struct Tile {
     of_type: TileType,
     /// CSS Margin Rules -> Top, Right, Bottom, Left
     edges: [bool; 4],
+    top: Vec<TileType>,
+    right: Vec<TileType>,
+    bottom: Vec<TileType>,
+    left: Vec<TileType>,
 }
 
 impl Tile {
     fn new(edges: [bool; 4], of_type: TileType) -> Self {
-        Tile { edges, of_type }
+        Tile {
+            edges,
+            of_type,
+            top: vec![],
+            right: vec![],
+            bottom: vec![],
+            left: vec![],
+        }
     }
 
     fn empty() -> Self {
@@ -102,8 +113,57 @@ impl Tile {
     }
 }
 
+struct TileBuilder {
+    top: Vec<TileType>,
+    right: Vec<TileType>,
+    bottom: Vec<TileType>,
+    left: Vec<TileType>,
+}
+
+impl TileBuilder {
+    pub fn new() -> TileBuilder {
+        TileBuilder {
+            top: vec![],
+            right: vec![],
+            bottom: vec![],
+            left: vec![],
+        }
+    }
+
+    pub fn top(mut self, tiles: Vec<TileType>) -> TileBuilder {
+        self.top = tiles;
+        self
+    }
+
+    pub fn right(mut self, tiles: Vec<TileType>) -> TileBuilder {
+        self.right = tiles;
+        self
+    }
+
+    pub fn bottom(mut self, tiles: Vec<TileType>) -> TileBuilder {
+        self.bottom = tiles;
+        self
+    }
+
+    pub fn left(mut self, tiles: Vec<TileType>) -> TileBuilder {
+        self.left = tiles;
+        self
+    }
+
+    pub fn build(self, of_type: TileType) -> Tile {
+        Tile {
+            top: self.top,
+            right: self.right,
+            bottom: self.bottom,
+            left: self.left,
+            of_type,
+            edges: [false, false, false, false],
+        }
+    }
+}
+
 fn gen_tile_list() -> Vec<Tile> {
-    let cross = Tile::new([true, true, true, true], TileType::Cross);
+    // let cross = Tile::new([true, true, true, true], TileType::Cross);
     let curve_blc = Tile::new([true, true, false, false], TileType::CurveBlc);
     let curve_brc = Tile::new([true, false, false, true], TileType::CurveBrc);
     let curve_tlc = Tile::new([false, true, true, false], TileType::CurveTlc);
@@ -122,6 +182,13 @@ fn gen_tile_list() -> Vec<Tile> {
     let tee_l = Tile::new([true, false, true, true], TileType::TeeL);
     let tee_r = Tile::new([true, true, true, false], TileType::TeeR);
     let tee_t = Tile::new([false, true, true, true], TileType::TeeT);
+
+    let cross = TileBuilder::new()
+        .top(vec![])
+        .right(vec![])
+        .bottom(vec![])
+        .left(vec![])
+        .build(TileType::Cross);
 
     vec![
         cross,
