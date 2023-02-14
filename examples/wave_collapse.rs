@@ -111,6 +111,74 @@ impl Tile {
     fn empty() -> Self {
         Tile::new([false, false, false, false], TileType::Empty)
     }
+
+    /// Tiles that can connection to the top of a tile
+    /// These tiles should have a bottom path to connect to
+    fn top_connections() -> Vec<TileType> {
+        vec![
+            TileType::Cross,
+            TileType::CurveTlc,
+            TileType::CurveTrc,
+            TileType::EndT,
+            TileType::StraightTlc,
+            TileType::StraightTrc,
+            TileType::TopToBottom,
+            TileType::TeeL,
+            TileType::TeeR,
+            TileType::TeeT,
+        ]
+    }
+
+    /// Tiles that can connection to the right of a tile
+    /// These tiles should have a left path to connect to
+    fn right_connections() -> Vec<TileType> {
+        vec![
+            TileType::Cross,
+            TileType::CurveBrc,
+            TileType::CurveTrc,
+            TileType::EndL,
+            TileType::LeftToRight,
+            TileType::StraightBrc,
+            TileType::StraightTrc,
+            TileType::TeeB,
+            TileType::TeeL,
+            TileType::TeeT,
+        ]
+    }
+
+    /// Tiles that can connection to the bottom of a tile
+    /// These tiles should have a top path to connect to
+    fn bottom_connections() -> Vec<TileType> {
+        vec![
+            TileType::Cross,
+            TileType::CurveBlc,
+            TileType::CurveBrc,
+            TileType::EndB,
+            TileType::StraightBlc,
+            TileType::StraightBrc,
+            TileType::TopToBottom,
+            TileType::TeeB,
+            TileType::TeeL,
+            TileType::TeeR,
+        ]
+    }
+
+    /// Tiles that can connection to the left of a tile
+    /// These tiles should have a right path to connect to
+    fn left_connections() -> Vec<TileType> {
+        vec![
+            TileType::Cross,
+            TileType::CurveBlc,
+            TileType::CurveTlc,
+            TileType::EndR,
+            TileType::LeftToRight,
+            TileType::StraightBlc,
+            TileType::StraightTlc,
+            TileType::TeeB,
+            TileType::TeeR,
+            TileType::TeeT,
+        ]
+    }
 }
 
 struct TileBuilder {
@@ -184,10 +252,10 @@ fn gen_tile_list() -> Vec<Tile> {
     let tee_t = Tile::new([false, true, true, true], TileType::TeeT);
 
     let cross = TileBuilder::new()
-        .top(vec![])
-        .right(vec![])
-        .bottom(vec![])
-        .left(vec![])
+        .top(Tile::top_connections())
+        .right(Tile::right_connections())
+        .bottom(Tile::bottom_connections())
+        .left(Tile::left_connections())
         .build(TileType::Cross);
 
     vec![
