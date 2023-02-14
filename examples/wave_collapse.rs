@@ -198,23 +198,23 @@ impl TileBuilder {
         }
     }
 
-    pub fn top(mut self, tiles: Vec<TileType>) -> TileBuilder {
-        self.top = tiles;
+    pub fn top(mut self) -> TileBuilder {
+        self.top = Tile::top_connections();
         self
     }
 
-    pub fn right(mut self, tiles: Vec<TileType>) -> TileBuilder {
-        self.right = tiles;
+    pub fn right(mut self) -> TileBuilder {
+        self.right = Tile::right_connections();
         self
     }
 
-    pub fn bottom(mut self, tiles: Vec<TileType>) -> TileBuilder {
-        self.bottom = tiles;
+    pub fn bottom(mut self) -> TileBuilder {
+        self.bottom = Tile::bottom_connections();
         self
     }
 
-    pub fn left(mut self, tiles: Vec<TileType>) -> TileBuilder {
-        self.left = tiles;
+    pub fn left(mut self) -> TileBuilder {
+        self.left = Tile::left_connections();
         self
     }
 
@@ -231,32 +231,70 @@ impl TileBuilder {
 }
 
 fn gen_tile_list() -> Vec<Tile> {
-    // let cross = Tile::new([true, true, true, true], TileType::Cross);
-    let curve_blc = Tile::new([true, true, false, false], TileType::CurveBlc);
-    let curve_brc = Tile::new([true, false, false, true], TileType::CurveBrc);
-    let curve_tlc = Tile::new([false, true, true, false], TileType::CurveTlc);
-    let curve_trc = Tile::new([false, false, true, true], TileType::CurveTrc);
-    let end_t = Tile::new([false, false, true, false], TileType::EndT);
-    let end_r = Tile::new([false, true, false, false], TileType::EndR);
-    let end_l = Tile::new([false, false, false, true], TileType::EndL);
-    let end_b = Tile::new([true, false, false, false], TileType::EndB);
-    let l_to_r = Tile::new([false, true, false, true], TileType::LeftToRight);
-    let straight_blc = Tile::new([true, true, false, false], TileType::StraightBlc);
-    let straight_brc = Tile::new([true, false, false, true], TileType::StraightBrc);
-    let straight_tlc = Tile::new([false, true, true, false], TileType::StraightTlc);
-    let straight_trc = Tile::new([false, false, true, true], TileType::StraightTrc);
-    let t_to_b = Tile::new([true, false, true, false], TileType::TopToBottom);
-    let tee_b = Tile::new([true, true, false, true], TileType::TeeB);
-    let tee_l = Tile::new([true, false, true, true], TileType::TeeL);
-    let tee_r = Tile::new([true, true, true, false], TileType::TeeR);
-    let tee_t = Tile::new([false, true, true, true], TileType::TeeT);
-
     let cross = TileBuilder::new()
-        .top(Tile::top_connections())
-        .right(Tile::right_connections())
-        .bottom(Tile::bottom_connections())
-        .left(Tile::left_connections())
+        .top()
+        .right()
+        .bottom()
+        .left()
         .build(TileType::Cross);
+
+    let curve_blc = TileBuilder::new().top().right().build(TileType::CurveBlc);
+    let curve_brc = TileBuilder::new().top().left().build(TileType::CurveBrc);
+    let curve_tlc = TileBuilder::new()
+        .right()
+        .bottom()
+        .build(TileType::CurveTlc);
+    let curve_trc = TileBuilder::new().left().bottom().build(TileType::CurveTrc);
+
+    // TODO: Confirm end_t and end_b
+    let end_t = TileBuilder::new().bottom().build(TileType::EndT);
+    let end_b = TileBuilder::new().top().build(TileType::EndB);
+    let end_r = TileBuilder::new().right().build(TileType::EndR);
+    let end_l = TileBuilder::new().left().build(TileType::EndL);
+
+    let l_to_r = TileBuilder::new()
+        .right()
+        .left()
+        .build(TileType::LeftToRight);
+    let t_to_b = TileBuilder::new()
+        .top()
+        .bottom()
+        .build(TileType::TopToBottom);
+
+    let straight_blc = TileBuilder::new()
+        .top()
+        .right()
+        .build(TileType::StraightBlc);
+    let straight_brc = TileBuilder::new().top().left().build(TileType::StraightBrc);
+    let straight_tlc = TileBuilder::new()
+        .right()
+        .bottom()
+        .build(TileType::StraightTlc);
+    let straight_trc = TileBuilder::new()
+        .left()
+        .bottom()
+        .build(TileType::StraightTrc);
+
+    let tee_b = TileBuilder::new()
+        .top()
+        .right()
+        .left()
+        .build(TileType::TeeB);
+    let tee_l = TileBuilder::new()
+        .top()
+        .bottom()
+        .left()
+        .build(TileType::TeeL);
+    let tee_r = TileBuilder::new()
+        .top()
+        .right()
+        .bottom()
+        .build(TileType::TeeR);
+    let tee_t = TileBuilder::new()
+        .bottom()
+        .right()
+        .left()
+        .build(TileType::TeeT);
 
     vec![
         cross,
