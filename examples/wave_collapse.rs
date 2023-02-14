@@ -6,7 +6,7 @@ const WINDOW_TITLE: &str = "Wave Collapse";
 const WINDOW_WIDTH: f32 = 1133.0;
 const WINDOW_HEIGHT: f32 = 744.0;
 
-const TILE_COUNT: usize = 20;
+const TILE_COUNT: usize = 10;
 const TILE_SIZE: f32 = 64.0;
 const TILE_OFFSET: f32 = (TILE_SIZE * (TILE_COUNT / 2) as f32) - (TILE_SIZE / 2.0);
 
@@ -96,6 +96,10 @@ impl Tile {
     fn new(edges: [bool; 4], of_type: TileType) -> Self {
         Tile { edges, of_type }
     }
+
+    fn empty() -> Self {
+        Tile::new([false, false, false, false], TileType::Empty)
+    }
 }
 
 fn gen_tile_list() -> Vec<Tile> {
@@ -118,7 +122,6 @@ fn gen_tile_list() -> Vec<Tile> {
     let tee_l = Tile::new([true, false, true, true], TileType::TeeL);
     let tee_r = Tile::new([true, true, true, false], TileType::TeeR);
     let tee_t = Tile::new([false, true, true, true], TileType::TeeT);
-    let empty = Tile::new([false, false, false, false], TileType::Empty);
 
     vec![
         cross,
@@ -140,7 +143,6 @@ fn gen_tile_list() -> Vec<Tile> {
         tee_l,
         tee_r,
         tee_t,
-        empty,
     ]
 }
 
@@ -245,6 +247,8 @@ impl WaveCollapse {
 
         if let Some(chosen_tile) = chosen_tile {
             self.collapsed_grid[at.row][at.col] = Some(*chosen_tile);
+        } else {
+            self.collapsed_grid[at.row][at.col] = Some(Tile::empty());
         }
     }
 
@@ -483,8 +487,8 @@ fn spawn_grid_map(mut commands: Commands, assets: Res<TileAssets>) {
             if let Some(tile) = col {
                 let mut sprite_bundle = SpriteBundle {
                     transform: Transform::from_xyz(
-                        TILE_SIZE * i as f32 - TILE_OFFSET,
                         TILE_SIZE * j as f32 - TILE_OFFSET,
+                        TILE_SIZE * i as f32 - TILE_OFFSET,
                         0.0,
                     ),
                     ..default()
