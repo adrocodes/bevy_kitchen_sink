@@ -323,7 +323,7 @@ struct Pos {
     col: usize,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 enum OffsetType {
     Top,
     Right,
@@ -446,21 +446,11 @@ impl WaveCollapse {
         self.collapse(next_at);
     }
 
-    fn get_index_pairs(direction: OffsetType) -> (usize, usize) {
-        match direction {
-            OffsetType::Top => (0, 2),
-            OffsetType::Right => (1, 3),
-            OffsetType::Bottom => (2, 0),
-            OffsetType::Left => (3, 1),
-        }
-    }
-
     fn propogate(&mut self, from: &Pos, direction: OffsetType) {
         let tile = self.get_collapsed_cell(&from);
 
         if let Some(tile) = tile {
             let offset_tile = self.get_offset_cell(&from, direction);
-            let indexes = WaveCollapse::get_index_pairs(direction);
 
             if let Some(offset_tile) = offset_tile {
                 offset_tile.retain(|t| match direction {
@@ -545,7 +535,7 @@ mod tests {
         let mut wave = WaveCollapse::new(1, 1);
         let pos = Pos { row: 0, col: 0 };
         wave.collapse_cell(&pos);
-        let cell = wave.collapsed_grid[pos.row][pos.col];
+        let cell = &wave.collapsed_grid[pos.row][pos.col];
 
         assert_eq!(true, cell.is_some());
     }
@@ -656,7 +646,7 @@ fn spawn_grid_map(mut commands: Commands, assets: Res<TileAssets>) {
                 let mut sprite_bundle = SpriteBundle {
                     transform: Transform::from_xyz(
                         TILE_SIZE * j as f32 - TILE_OFFSET,
-                        TILE_SIZE * i as f32 - TILE_OFFSET,
+                        TILE_SIZE * i as f32 + TILE_OFFSET,
                         0.0,
                     ),
                     ..default()
