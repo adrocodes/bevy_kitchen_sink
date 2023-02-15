@@ -85,11 +85,9 @@ impl TileType {
     }
 }
 
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Component)]
 struct Tile {
     of_type: TileType,
-    /// CSS Margin Rules -> Top, Right, Bottom, Left
-    edges: [bool; 4],
     top: Vec<TileType>,
     right: Vec<TileType>,
     bottom: Vec<TileType>,
@@ -97,19 +95,8 @@ struct Tile {
 }
 
 impl Tile {
-    fn new(edges: [bool; 4], of_type: TileType) -> Self {
-        Tile {
-            edges,
-            of_type,
-            top: vec![],
-            right: vec![],
-            bottom: vec![],
-            left: vec![],
-        }
-    }
-
     fn empty() -> Self {
-        Tile::new([false, false, false, false], TileType::Empty)
+        TileBuilder::new().build(TileType::Empty)
     }
 
     /// Tiles that can connection to the top of a tile
@@ -126,6 +113,7 @@ impl Tile {
             TileType::TeeL,
             TileType::TeeR,
             TileType::TeeT,
+            TileType::Empty,
         ]
     }
 
@@ -143,6 +131,7 @@ impl Tile {
             TileType::TeeB,
             TileType::TeeL,
             TileType::TeeT,
+            TileType::Empty,
         ]
     }
 
@@ -160,6 +149,7 @@ impl Tile {
             TileType::TeeB,
             TileType::TeeL,
             TileType::TeeR,
+            TileType::Empty,
         ]
     }
 
@@ -177,6 +167,7 @@ impl Tile {
             TileType::TeeB,
             TileType::TeeR,
             TileType::TeeT,
+            TileType::Empty,
         ]
     }
 }
@@ -225,7 +216,6 @@ impl TileBuilder {
             bottom: self.bottom,
             left: self.left,
             of_type,
-            edges: [false, false, false, false],
         }
     }
 }
@@ -411,7 +401,7 @@ impl WaveCollapse {
     }
 
     fn get_collapsed_cell(&self, at: &Pos) -> Option<Tile> {
-        self.collapsed_grid[at.row][at.col]
+        self.collapsed_grid[at.row][at.col].clone()
     }
 
     fn collapse_cell(&mut self, at: &Pos) {
@@ -419,7 +409,7 @@ impl WaveCollapse {
         let chosen_tile = cell.choose(&mut rand::thread_rng());
 
         if let Some(chosen_tile) = chosen_tile {
-            self.collapsed_grid[at.row][at.col] = Some(*chosen_tile);
+            self.collapsed_grid[at.row][at.col] = Some(chosen_tile.clone());
         } else {
             self.collapsed_grid[at.row][at.col] = Some(Tile::empty());
         }
@@ -473,7 +463,12 @@ impl WaveCollapse {
             let indexes = WaveCollapse::get_index_pairs(direction);
 
             if let Some(offset_tile) = offset_tile {
-                offset_tile.retain(|t| t.edges[indexes.1] == tile.edges[indexes.0]);
+                offset_tile.retain(|t| match direction {
+                    OffsetType::Top => tile.top.contains(&t.of_type),
+                    OffsetType::Right => tile.right.contains(&t.of_type),
+                    OffsetType::Bottom => tile.bottom.contains(&t.of_type),
+                    OffsetType::Left => tile.left.contains(&t.of_type),
+                });
             }
         }
     }
@@ -675,7 +670,7 @@ fn spawn_grid_map(mut commands: Commands, assets: Res<TileAssets>) {
                     None => {}
                 };
 
-                commands.spawn((*tile, sprite_bundle));
+                commands.spawn((tile.clone(), sprite_bundle));
             }
         }
     }
