@@ -13,6 +13,7 @@ categories = ["games", "game-development"]
 
 [dependencies]
 bevy = { version = "0.9.1", features = ["dynamic"] }
+bevy-inspector-egui = "0.17.0"
 bevy_asset_loader = "0.14.1"
 bevy_mouse_position = { git = "https://github.com/adrocodes/bevy_mouse_position", branch = "main" }
 bevy_prototype_lyon = "0.7.2"
