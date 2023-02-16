@@ -647,8 +647,8 @@ fn spawn_grid_map(mut commands: Commands, assets: Res<TileAssets>) {
             if let Some(tile) = col {
                 let mut sprite_bundle = SpriteBundle {
                     transform: Transform::from_xyz(
-                        TILE_SIZE * j as f32 - TILE_OFFSET,
-                        TILE_SIZE * i as f32 + TILE_OFFSET,
+                        (TILE_SIZE * j as f32) - TILE_OFFSET,
+                        (TILE_SIZE * i as f32 * -1.0) + TILE_OFFSET,
                         0.0,
                     ),
                     ..default()
@@ -662,7 +662,11 @@ fn spawn_grid_map(mut commands: Commands, assets: Res<TileAssets>) {
                     None => {}
                 };
 
-                commands.spawn((tile.clone(), sprite_bundle));
+                commands.spawn((
+                    tile.clone(),
+                    sprite_bundle,
+                    Name::new(format!("{}x{}", j, i)),
+                ));
             }
         }
     }
