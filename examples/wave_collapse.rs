@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_asset_loader::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use rand::seq::SliceRandom;
 
 const WINDOW_TITLE: &str = "Wave Collapse";
@@ -28,6 +29,7 @@ fn main() {
             ..default()
         }))
         .insert_resource(ClearColor(BACKGROUND_COLOR))
+        .add_plugin(WorldInspectorPlugin)
         .add_startup_system(spawn_camera)
         .add_plugin(WaveCollapseGamePlugin)
         .add_system(bevy::window::close_on_esc)
