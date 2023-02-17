@@ -434,6 +434,23 @@ impl WaveCollapse {
         pos
     }
 
+    fn get_next_sequence_tile(&self, at: &Pos) -> Pos {
+        let mut new_row = at.row;
+
+        let new_col = match (at.col + 1) >= self.cols {
+            true => {
+                new_row += 1;
+                0
+            }
+            false => at.col + 1,
+        };
+
+        Pos {
+            row: new_row,
+            col: new_col,
+        }
+    }
+
     fn collapse(&mut self, at: Pos) {
         if self.grid_is_collapsed() {
             return;
@@ -447,7 +464,7 @@ impl WaveCollapse {
         self.propogate(&at, OffsetType::Bottom);
         self.propogate(&at, OffsetType::Left);
 
-        let next_at = self.get_next_lowest_tile();
+        let next_at = self.get_next_sequence_tile(&at);
         self.collapse(next_at);
     }
 
