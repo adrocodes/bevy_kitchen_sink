@@ -294,10 +294,10 @@ fn gen_tile_list() -> Vec<Tile> {
         curve_brc,
         curve_tlc,
         curve_trc,
-        end_b,
-        end_l,
-        end_r,
-        end_t,
+        // end_b,
+        // end_l,
+        // end_r,
+        // end_t,
         l_to_r,
         t_to_b,
         straight_blc,
@@ -408,6 +408,7 @@ impl WaveCollapse {
 
     fn collapse_cell(&mut self, at: &Pos) {
         let cell = self.get_cell(&at);
+        // dbg!(&cell);
         let chosen_tile = cell.choose(&mut rand::thread_rng());
 
         if let Some(chosen_tile) = chosen_tile {
@@ -439,6 +440,8 @@ impl WaveCollapse {
         }
 
         self.collapse_cell(&at);
+        self.repopulate_grid();
+
         self.propogate(&at, OffsetType::Top);
         self.propogate(&at, OffsetType::Right);
         self.propogate(&at, OffsetType::Bottom);
@@ -455,14 +458,38 @@ impl WaveCollapse {
             let offset_tile = self.get_offset_cell(&from, direction);
 
             if let Some(offset_tile) = offset_tile {
-                offset_tile.retain(|t| match direction {
-                    OffsetType::Top => tile.top.contains(&t.of_type),
-                    OffsetType::Right => tile.right.contains(&t.of_type),
-                    OffsetType::Bottom => tile.bottom.contains(&t.of_type),
-                    OffsetType::Left => tile.left.contains(&t.of_type),
+                offset_tile.retain(|t| {
+                    let result = match direction {
+                        OffsetType::Top => {
+                            tile.top.contains(&t.of_type)
+                                || (tile.top.len() == 0 && t.bottom.len() == 0)
+                        }
+                        OffsetType::Right => {
+                            tile.right.contains(&t.of_type)
+                                || (tile.right.len() == 0 && t.left.len() == 0)
+                        }
+                        OffsetType::Bottom => {
+                            tile.bottom.contains(&t.of_type)
+                                || (tile.bottom.len() == 0 && t.top.len() == 0)
+                        }
+                        OffsetType::Left => {
+                            tile.left.contains(&t.of_type)
+                                || (tile.left.len() == 0 && t.right.len() == 0)
+                        }
+                    };
+
+                    result
                 });
             }
         }
+    }
+
+    fn repopulate_grid(&mut self) {
+        let grid: Vec<Vec<Vec<Tile>>> = (0..self.rows)
+            .map(|_| (0..self.cols).map(|_| gen_tile_list()).collect::<Vec<_>>())
+            .collect::<Vec<_>>();
+
+        self.grid = grid;
     }
 
     fn grid_is_collapsed(&self) -> bool {
@@ -640,6 +667,7 @@ impl Plugin for WaveCollapseGamePlugin {
 fn spawn_grid_map(mut commands: Commands, assets: Res<TileAssets>) {
     let mut wave = WaveCollapse::new(TILE_COUNT, TILE_COUNT);
     wave.collapse(Pos { row: 0, col: 0 });
+    wave.collapse(Pos { row: 0, col: 1 });
     let grid = wave.collapsed_grid;
 
     for (i, row) in grid.iter().enumerate() {
