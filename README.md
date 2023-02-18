@@ -43,3 +43,7 @@ A copy of **Random Squares** but the `rand` package has been replaced with `nois
 ### Examples - Doodle Demigod
 
 A minimal clone of the game "Doodle God", where instead of combining elements to make new things, you combine land tiles to unlock decorations. There are 7 tiles to unlock.
+
+### Examples - Wave Collapse
+
+Using a very scuffed "Wave Collapse" it will generate a random path network. Some paths just kinda end, plan is to refine this later to be a bit more accurate and interesting.
